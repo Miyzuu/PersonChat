@@ -1,8 +1,11 @@
-// PersonChat v7.2.0 | Streamlabs Chat Box
+// PersonChat v7.3.0 | Streamlabs Chat Box
 // ===== CONFIGURACAO EDITAVEL DO PERSONCHAT =====
 // Ajuste somente este objeto antes de colar o arquivo no widget.
+// Para detectar mencoes antes de o streamer falar, preencha STREAMER_NAMES sem o @.
 globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     "THEME": "dark-purple",
+    "MESSAGE_ANIMATION": "soft-slide",
+    "TEXT_EFFECT": "soft-glow",
     "MESSAGE_LINE_LENGTH": "25ch",
     "MAX_MESSAGES": 50,
     "HIDE_AFTER": 0,
@@ -15,6 +18,12 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     "SHOW_PLATFORM_BADGE": false,
     "SHOW_ROLE_PILLS": false,
     "SHOW_EVENT_BANNERS": false,
+    "ROLE_GRADIENTS_ENABLED": true,
+    "EMOTE_ONLY_MODE": true,
+    "GROUP_REPEATED_MESSAGES": true,
+    "GROUP_REPEATED_WINDOW": 8000,
+    "GROUP_REPEATED_MAX_LENGTH": 80,
+    "GROUP_REPEATED_MAX_COUNT": 99,
     "HIDE_REPEATED_AVATAR_AND_NAME": true,
     "REPEATED_MESSAGE_WINDOW": 120000,
     "FIRST_MESSAGE_MODE": "off",
@@ -24,10 +33,29 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     "IMAGE_ALLOWED_HOSTS": [],
     "MAX_EMBEDDED_IMAGES_PER_MESSAGE": 1,
     "IMAGE_MAX_URL_LENGTH": 2048,
-    "IMAGE_LOAD_TIMEOUT": 5000
+    "IMAGE_LOAD_TIMEOUT": 5000,
+    "WORD_EFFECTS_ENABLED": true,
+    "WORD_EFFECTS": [
+        { "trigger": "Briar", "effect": "confetti", "match": "word", "cooldown": 6000, "particles": 44 },
+        { "trigger": "GG", "effect": "energy-wave", "match": "word", "cooldown": 8000, "threshold": 3, "window": 6000, "uniqueUsers": true },
+        { "trigger": "Hype", "effect": "hype-pulse", "match": "word", "cooldown": 4000 },
+        { "trigger": "Boa noite", "effect": "stars", "match": "phrase", "cooldown": 6000, "particles": 28 },
+        { "trigger": "F", "effect": "mono-rain", "match": "exact", "cooldown": 5000, "particles": 34 }
+    ],
+    "EFFECTS_MAX_PER_MESSAGE": 1,
+    "EFFECTS_MAX_PARTICLES": 120,
+    "CLIMAX_ENABLED": true,
+    "CLIMAX_WINDOW": 10000,
+    "CLIMAX_MESSAGE_THRESHOLD": 12,
+    "CLIMAX_DURATION": 8000,
+    "CLIMAX_COOLDOWN": 15000,
+    "STREAMER_HIGHLIGHT_ENABLED": true,
+    "STREAMER_MENTION_ENABLED": true,
+    "STREAMER_NAMES": [],
+    "STREAMER_MENTION_DURATION": 1600
 };
 
-// Arquivo gerado por npm run build. Edite os módulos em src/ durante o desenvolvimento.
+// Bundle autocontido para uso direto na aba JS da Streamlabs.
 (() => {
   // src/config.js
   var THEMES = Object.freeze([
@@ -44,8 +72,21 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     "off"
   ]);
   var PLATFORM_DISPLAY_MODES = Object.freeze(["combined", "twitch-only", "non-twitch"]);
+  var MESSAGE_ANIMATIONS = Object.freeze(["soft-slide", "float-up", "pop", "minimal", "none"]);
+  var TEXT_EFFECTS = Object.freeze(["none", "soft-glow", "color-pulse"]);
+  var WORD_EFFECT_TYPES = Object.freeze(["confetti", "energy-wave", "hype-pulse", "stars", "mono-rain"]);
+  var WORD_MATCH_MODES = Object.freeze(["word", "phrase", "exact"]);
+  var DEFAULT_WORD_EFFECTS = Object.freeze([
+    Object.freeze({ trigger: "Briar", effect: "confetti", match: "word", cooldown: 6e3, particles: 44, threshold: 1, window: 6e3, uniqueUsers: false }),
+    Object.freeze({ trigger: "GG", effect: "energy-wave", match: "word", cooldown: 8e3, particles: 0, threshold: 3, window: 6e3, uniqueUsers: true }),
+    Object.freeze({ trigger: "Hype", effect: "hype-pulse", match: "word", cooldown: 4e3, particles: 0, threshold: 1, window: 6e3, uniqueUsers: false }),
+    Object.freeze({ trigger: "Boa noite", effect: "stars", match: "phrase", cooldown: 6e3, particles: 28, threshold: 1, window: 6e3, uniqueUsers: false }),
+    Object.freeze({ trigger: "F", effect: "mono-rain", match: "exact", cooldown: 5e3, particles: 34, threshold: 1, window: 6e3, uniqueUsers: false })
+  ]);
   var DEFAULT_CONFIG = Object.freeze({
     THEME: "dark-purple",
+    MESSAGE_ANIMATION: "soft-slide",
+    TEXT_EFFECT: "soft-glow",
     MESSAGE_LINE_LENGTH: "25ch",
     MAX_MESSAGES: 50,
     HIDE_AFTER: 0,
@@ -53,6 +94,12 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     SHOW_PLATFORM_BADGE: false,
     SHOW_ROLE_PILLS: false,
     SHOW_EVENT_BANNERS: false,
+    ROLE_GRADIENTS_ENABLED: true,
+    EMOTE_ONLY_MODE: true,
+    GROUP_REPEATED_MESSAGES: true,
+    GROUP_REPEATED_WINDOW: 8e3,
+    GROUP_REPEATED_MAX_LENGTH: 80,
+    GROUP_REPEATED_MAX_COUNT: 99,
     HIDE_REPEATED_AVATAR_AND_NAME: true,
     REPEATED_MESSAGE_WINDOW: 12e4,
     PLATFORM_DISPLAY_MODE: "combined",
@@ -76,6 +123,19 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     IMAGE_MAX_URL_LENGTH: 2048,
     IMAGE_LOAD_TIMEOUT: 5e3,
     REPLY_FALLBACK_FROM_LEADING_MENTION: true,
+    WORD_EFFECTS_ENABLED: true,
+    WORD_EFFECTS: DEFAULT_WORD_EFFECTS,
+    EFFECTS_MAX_PER_MESSAGE: 1,
+    EFFECTS_MAX_PARTICLES: 120,
+    CLIMAX_ENABLED: true,
+    CLIMAX_WINDOW: 1e4,
+    CLIMAX_MESSAGE_THRESHOLD: 12,
+    CLIMAX_DURATION: 8e3,
+    CLIMAX_COOLDOWN: 15e3,
+    STREAMER_HIGHLIGHT_ENABLED: true,
+    STREAMER_MENTION_ENABLED: true,
+    STREAMER_NAMES: Object.freeze([]),
+    STREAMER_MENTION_DURATION: 1600,
     DEBUG: false
   });
   var BOOLEAN_FIELDS = Object.freeze([
@@ -83,16 +143,26 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     "SHOW_PLATFORM_BADGE",
     "SHOW_ROLE_PILLS",
     "SHOW_EVENT_BANNERS",
+    "ROLE_GRADIENTS_ENABLED",
+    "EMOTE_ONLY_MODE",
+    "GROUP_REPEATED_MESSAGES",
     "HIDE_REPEATED_AVATAR_AND_NAME",
     "FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN",
     "FETCH_KICK_AVATAR",
     "EMBED_IMAGES",
     "REPLY_FALLBACK_FROM_LEADING_MENTION",
+    "WORD_EFFECTS_ENABLED",
+    "CLIMAX_ENABLED",
+    "STREAMER_HIGHLIGHT_ENABLED",
+    "STREAMER_MENTION_ENABLED",
     "DEBUG"
   ]);
   var NUMBER_RULES = Object.freeze({
     MAX_MESSAGES: { min: 1, max: 500, integer: true },
     HIDE_AFTER: { min: 0, max: 86400, integer: false },
+    GROUP_REPEATED_WINDOW: { min: 500, max: 12e4, integer: true },
+    GROUP_REPEATED_MAX_LENGTH: { min: 1, max: 500, integer: true },
+    GROUP_REPEATED_MAX_COUNT: { min: 2, max: 999, integer: true },
     REPEATED_MESSAGE_WINDOW: { min: 0, max: 36e5, integer: true },
     MAX_AVATAR_DB_SIZE: { min: 1, max: 5e4, integer: true },
     AVATAR_EXPIRY: { min: 6e4, max: 31536e6, integer: true },
@@ -105,7 +175,14 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     FIRST_MESSAGE_WARMUP: { min: 0, max: 3e5, integer: true },
     MAX_EMBEDDED_IMAGES_PER_MESSAGE: { min: 1, max: 4, integer: true },
     IMAGE_MAX_URL_LENGTH: { min: 256, max: 8192, integer: true },
-    IMAGE_LOAD_TIMEOUT: { min: 1e3, max: 3e4, integer: true }
+    IMAGE_LOAD_TIMEOUT: { min: 1e3, max: 3e4, integer: true },
+    EFFECTS_MAX_PER_MESSAGE: { min: 1, max: 3, integer: true },
+    EFFECTS_MAX_PARTICLES: { min: 10, max: 200, integer: true },
+    CLIMAX_WINDOW: { min: 1e3, max: 12e4, integer: true },
+    CLIMAX_MESSAGE_THRESHOLD: { min: 3, max: 100, integer: true },
+    CLIMAX_DURATION: { min: 500, max: 6e4, integer: true },
+    CLIMAX_COOLDOWN: { min: 0, max: 3e5, integer: true },
+    STREAMER_MENTION_DURATION: { min: 200, max: 1e4, integer: true }
   });
   var CSS_LENGTH_PATTERN = /^(?:0|(?:\d+(?:\.\d+)?)(?:px|em|rem|ch|vw|vh|%))$/i;
   var HOST_PATTERN = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
@@ -160,6 +237,47 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     if (!key || key.length > 128 || /[{}]/.test(key) || hasControlCharacter) return fallback;
     return key;
   }
+  function asDisplayToken(value, maxLength) {
+    let token = String(value == null ? "" : value).normalize("NFKC").trim().replace(/\s+/g, " ");
+    const hasControlCharacter = Array.from(token).some((character) => character.charCodeAt(0) <= 31);
+    if (!token || token.length > maxLength || /[{}]/.test(token) || hasControlCharacter) return "";
+    return token;
+  }
+  function cloneWordEffects(rules) {
+    return rules.map((rule) => Object.assign({}, rule));
+  }
+  function asWordEffects(value, fallback) {
+    if (!Array.isArray(value)) return cloneWordEffects(fallback);
+    const output = [];
+    const seen = /* @__PURE__ */ new Set();
+    value.slice(0, 20).forEach((rawRule) => {
+      if (!isRecord(rawRule)) return;
+      const trigger = asDisplayToken(rawRule.trigger, 40);
+      const effect = asEnum(rawRule.effect, WORD_EFFECT_TYPES, "");
+      const defaultMatch = trigger.includes(" ") ? "phrase" : "word";
+      const match = asEnum(rawRule.match, WORD_MATCH_MODES, defaultMatch);
+      if (!trigger || !effect) return;
+      const signature = trigger.toLocaleLowerCase("pt-BR") + "\n" + effect;
+      if (seen.has(signature)) return;
+      seen.add(signature);
+      output.push({
+        trigger,
+        effect,
+        match,
+        cooldown: asNumber(rawRule.cooldown, 5e3, { min: 0, max: 6e4, integer: true }),
+        particles: asNumber(rawRule.particles, effect === "confetti" ? 44 : effect === "stars" ? 28 : effect === "mono-rain" ? 34 : 0, { min: 0, max: 120, integer: true }),
+        threshold: asNumber(rawRule.threshold, 1, { min: 1, max: 20, integer: true }),
+        window: asNumber(rawRule.window, 6e3, { min: 500, max: 6e4, integer: true }),
+        uniqueUsers: asBoolean(rawRule.uniqueUsers, false)
+      });
+    });
+    return output.length ? output : cloneWordEffects(fallback);
+  }
+  function asStreamerNames(value, fallback) {
+    if (!Array.isArray(value)) return Array.from(fallback);
+    const names = value.slice(0, 12).map((name) => asDisplayToken(name, 80).replace(/^@+/, "").trim()).filter(Boolean);
+    return Array.from(new Set(names.map((name) => name.toLocaleLowerCase("pt-BR"))));
+  }
   function collectErrors(input) {
     if (!isRecord(input)) {
       return [
@@ -176,6 +294,12 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     }
     if ("PLATFORM_DISPLAY_MODE" in input && !PLATFORM_DISPLAY_MODES.includes(String(input.PLATFORM_DISPLAY_MODE).trim().toLowerCase())) {
       add("PLATFORM_DISPLAY_MODE", "invalid-enum", "Modo de exibicao de plataforma invalido.");
+    }
+    if ("MESSAGE_ANIMATION" in input && !MESSAGE_ANIMATIONS.includes(String(input.MESSAGE_ANIMATION).trim().toLowerCase())) {
+      add("MESSAGE_ANIMATION", "invalid-enum", "Animacao de mensagem invalida.");
+    }
+    if ("TEXT_EFFECT" in input && !TEXT_EFFECTS.includes(String(input.TEXT_EFFECT).trim().toLowerCase())) {
+      add("TEXT_EFFECT", "invalid-enum", "Efeito de texto invalido.");
     }
     if ("MESSAGE_LINE_LENGTH" in input && !CSS_LENGTH_PATTERN.test(String(input.MESSAGE_LINE_LENGTH).trim())) {
       add(
@@ -206,6 +330,12 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         add("IMAGE_ALLOWED_HOSTS", "invalid-host", "A allowlist contem um host invalido.");
       }
     }
+    if ("WORD_EFFECTS" in input && !Array.isArray(input.WORD_EFFECTS)) {
+      add("WORD_EFFECTS", "invalid-array", "Os efeitos por palavra devem ser uma lista.");
+    }
+    if ("STREAMER_NAMES" in input && !Array.isArray(input.STREAMER_NAMES)) {
+      add("STREAMER_NAMES", "invalid-array", "Os nomes do streamer devem ser uma lista.");
+    }
     ["AVATAR_CACHE_KEY"].forEach((field) => {
       if (field in input && asKey(input[field], "") === "")
         add(field, "invalid-key", "Chave de storage invalida.");
@@ -222,6 +352,12 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     const debug = options && options.debug;
     const config = Object.assign({}, DEFAULT_CONFIG);
     config.THEME = asEnum(input.THEME, THEMES, DEFAULT_CONFIG.THEME);
+    config.MESSAGE_ANIMATION = asEnum(
+      input.MESSAGE_ANIMATION,
+      MESSAGE_ANIMATIONS,
+      DEFAULT_CONFIG.MESSAGE_ANIMATION
+    );
+    config.TEXT_EFFECT = asEnum(input.TEXT_EFFECT, TEXT_EFFECTS, DEFAULT_CONFIG.TEXT_EFFECT);
     config.FIRST_MESSAGE_MODE = asEnum(
       input.FIRST_MESSAGE_MODE,
       FIRST_MESSAGE_MODES,
@@ -248,6 +384,8 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     );
     config.AVATAR_CACHE_KEY = asKey(input.AVATAR_CACHE_KEY, DEFAULT_CONFIG.AVATAR_CACHE_KEY);
     config.AVATAR_LEGACY_KEYS = Array.isArray(input.AVATAR_LEGACY_KEYS) ? Array.from(new Set(input.AVATAR_LEGACY_KEYS.map((key) => asKey(key, "")).filter(Boolean))) : Array.from(DEFAULT_CONFIG.AVATAR_LEGACY_KEYS);
+    config.WORD_EFFECTS = asWordEffects(input.WORD_EFFECTS, DEFAULT_CONFIG.WORD_EFFECTS);
+    config.STREAMER_NAMES = asStreamerNames(input.STREAMER_NAMES, DEFAULT_CONFIG.STREAMER_NAMES);
     collectErrors(overrides).forEach(
       (error) => emitDebug(debug, {
         level: "warn",
@@ -697,6 +835,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         "moderator",
         [" moderator ", " moderador ", " mod ", " role mod ", " badge mod ", " is mod "]
       ],
+      ["raider", [" raider ", " raid leader ", " raid sender "]],
       ["vip", [" vip "]],
       ["founder", [" founder ", " fundador "]],
       [
@@ -1097,6 +1236,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
   var ROLE_LABELS = Object.freeze({
     broadcaster: "LIVE",
     moderator: "MOD",
+    raider: "RAIDER",
     vip: "VIP",
     founder: "1ST",
     subscriber: "SUB",
@@ -1132,6 +1272,11 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     "data-sender-id",
     "data-from-id",
     "data-user-uuid",
+    "data-role",
+    "data-roles",
+    "data-user-role",
+    "data-badge",
+    "data-badges",
     "data-avatar",
     "data-first-message",
     "data-first-msg",
@@ -1190,13 +1335,14 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         if (isRecord2(record[key])) queue.push(record[key]);
       });
     }
+    const prioritizedRecords = records.slice().reverse();
     const collect = (...keys) => {
       const values = [];
-      records.forEach((record) => keys.forEach((key) => values.push(record[key])));
+      prioritizedRecords.forEach((record) => keys.forEach((key) => values.push(record[key])));
       return values;
     };
     const firstRecord = (...keys) => {
-      for (const record of records) {
+      for (const record of prioritizedRecords) {
         for (const key of keys) {
           if (isRecord2(record[key])) return record[key];
         }
@@ -1209,6 +1355,52 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     const user = firstRecord("user");
     const reply = firstRecord("replies_to", "repliesTo", "reply_to", "replyTo", "reply");
     const replySender = isRecord2(reply.sender) ? reply.sender : {};
+    const structuredRoles = /* @__PURE__ */ new Set();
+    const addStructuredRole = (value) => {
+      const token = String(value == null ? "" : value).normalize("NFKC").toLowerCase();
+      if (!token) return;
+      if (/(?:^|[^a-z])(?:broadcaster|streamer|channel[ _-]?owner|owner)(?:[^a-z]|$)/.test(token)) structuredRoles.add("broadcaster");
+      if (/(?:^|[^a-z])(?:moderator|moderador|mod)(?:[^a-z]|$)/.test(token)) structuredRoles.add("moderator");
+      if (/(?:^|[^a-z])(?:raider|raid[ _-]?(?:leader|sender))(?:[^a-z]|$)/.test(token)) structuredRoles.add("raider");
+      if (/(?:^|[^a-z])vip(?:[^a-z]|$)/.test(token)) structuredRoles.add("vip");
+      if (/(?:^|[^a-z])(?:founder|fundador)(?:[^a-z]|$)/.test(token)) structuredRoles.add("founder");
+      if (/(?:^|[^a-z])(?:subscriber|subscription|member|sponsor|sub)(?:[^a-z]|$)/.test(token)) structuredRoles.add("subscriber");
+      if (/(?:^|[^a-z])(?:staff|admin)(?:[^a-z]|$)/.test(token)) structuredRoles.add("staff");
+    };
+    const collectStructuredRoles = (value, depth = 0) => {
+      if (value == null || depth > 2) return;
+      if (Array.isArray(value)) {
+        value.slice(0, 30).forEach((item) => collectStructuredRoles(item, depth + 1));
+        return;
+      }
+      if (isRecord2(value)) {
+        Object.entries(value).slice(0, 30).forEach(([key, item]) => {
+          const disabled = item === false || item === 0 || item == null || ["0", "false"].includes(String(item).toLowerCase());
+          if (!disabled) {
+            addStructuredRole(key);
+            collectStructuredRoles(item, depth + 1);
+          }
+        });
+        return;
+      }
+      addStructuredRole(value);
+    };
+    const isTrueFlag = (value) => value === true || value === 1 || ["1", "true", "yes"].includes(String(value == null ? "" : value).toLowerCase());
+    [
+      tags.badges,
+      tags.badge,
+      author.badges,
+      author.roles,
+      sender.badges,
+      sender.roles,
+      sender.identity && sender.identity.badges,
+      user.badges,
+      user.roles,
+      ...collect("badges", "badge", "roles", "role")
+    ].forEach((value) => collectStructuredRoles(value));
+    if (isTrueFlag(tags.mod) || isTrueFlag(author.isChatModerator) || isTrueFlag(author.isModerator)) structuredRoles.add("moderator");
+    if (isTrueFlag(tags.subscriber) || isTrueFlag(author.isChatSponsor) || isTrueFlag(author.isSponsor)) structuredRoles.add("subscriber");
+    if (isTrueFlag(author.isChatOwner) || isTrueFlag(author.isOwner) || isTrueFlag(tags.broadcaster)) structuredRoles.add("broadcaster");
     const command = firstSafe(
       [...collect("command"), ...collect("kind"), ...collect("type")],
       50
@@ -1237,6 +1429,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       const value = firstSafe(values, maxLength);
       if (value) attributes[name] = value;
     };
+    if (structuredRoles.size) attributes["data-roles"] = Array.from(structuredRoles).join(" ");
     set(
       "data-platform",
       [
@@ -1464,6 +1657,241 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     ].join("");
     return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
   }
+  function canonicalInteractiveText(value) {
+    return String(value == null ? "" : value).normalize("NFKC").toLocaleLowerCase("pt-BR").replace(/\s+/gu, " ").trim();
+  }
+  function matchesWordEffect(messageText, rule) {
+    const text = canonicalInteractiveText(messageText);
+    const trigger = canonicalInteractiveText(rule && rule.trigger);
+    if (!text || !trigger) return false;
+    if (rule.match === "exact") {
+      const stripped = text.replace(/^[^\p{L}\p{N}_]+|[^\p{L}\p{N}_]+$/gu, "");
+      return stripped === trigger;
+    }
+    const body = trigger.split(" ").map(escapeRegExp).join("\\s+");
+    try {
+      return new RegExp("(?:^|[^\\p{L}\\p{N}_])" + body + "(?=$|[^\\p{L}\\p{N}_])", "iu").test(text);
+    } catch {
+      return false;
+    }
+  }
+  function isEmoteOnlyMessage(messageElement) {
+    if (!messageElement || !messageElement.querySelector(".emote, .emoji, img")) return false;
+    const copy = messageElement.cloneNode(true);
+    copy.querySelectorAll(".emote, .emoji, img, br, [data-personchat-repeat-count]").forEach((node) => node.remove());
+    return String(copy.textContent || "").replace(/[\s\u200B-\u200D\uFEFF]+/gu, "") === "";
+  }
+  function createEffectsEngine(options) {
+    const { documentRef, windowRef, config, timers, now, log } = options;
+    const createdNodes = [];
+    const ensureElement = (id, tagName, parent, className = "") => {
+      let element = documentRef.getElementById(id);
+      if (element) return element;
+      element = documentRef.createElement(tagName);
+      element.id = id;
+      if (className) element.className = className;
+      element.setAttribute("aria-hidden", "true");
+      parent.appendChild(element);
+      createdNodes.push(element);
+      return element;
+    };
+    const host = documentRef.body || documentRef.documentElement;
+    const backdrop = ensureElement("personchat-effects-backdrop", "div", host, "personchat-effects-layer");
+    const overlay = ensureElement("personchat-effects-overlay", "div", host, "personchat-effects-layer");
+    const canvas = ensureElement("personchat-effects-canvas", "canvas", overlay);
+    const cssLayer = ensureElement("personchat-effects-css", "div", overlay);
+    let context = null;
+    try {
+      context = typeof canvas.getContext === "function" ? canvas.getContext("2d") : null;
+    } catch {
+      context = null;
+    }
+    let width = 1;
+    let height = 1;
+    let frameId = null;
+    let lastFrame = 0;
+    let resizeTimer = null;
+    let destroyed = false;
+    const particles = [];
+    const requestFrame = typeof windowRef.requestAnimationFrame === "function" ? windowRef.requestAnimationFrame.bind(windowRef) : (callback) => timers.set(() => callback(now()), 16);
+    const cancelFrame = typeof windowRef.cancelAnimationFrame === "function" ? windowRef.cancelAnimationFrame.bind(windowRef) : timers.clear;
+    let motionQuery = null;
+    try {
+      motionQuery = typeof windowRef.matchMedia === "function" ? windowRef.matchMedia("(prefers-reduced-motion: reduce)") : null;
+    } catch {
+      motionQuery = null;
+    }
+    let reducedMotion = Boolean(motionQuery && motionQuery.matches);
+    function resize() {
+      if (destroyed || !context) return;
+      width = Math.max(1, Number(windowRef.innerWidth) || documentRef.documentElement.clientWidth || 1);
+      height = Math.max(1, Number(windowRef.innerHeight) || documentRef.documentElement.clientHeight || 1);
+      const ratio = Math.min(2, Math.max(1, Number(windowRef.devicePixelRatio) || 1));
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+    function clearParticles() {
+      particles.splice(0);
+      if (frameId != null) cancelFrame(frameId);
+      frameId = null;
+      lastFrame = 0;
+      if (context) context.clearRect(0, 0, width, height);
+    }
+    function drawStar(particle) {
+      context.beginPath();
+      for (let point = 0; point < 10; point += 1) {
+        const radius = point % 2 === 0 ? particle.size : particle.size * 0.42;
+        const angle = particle.rotation + point * Math.PI / 5 - Math.PI / 2;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        if (point === 0) context.moveTo(x, y);
+        else context.lineTo(x, y);
+      }
+      context.closePath();
+      context.fill();
+    }
+    function renderFrame(timestamp) {
+      frameId = null;
+      if (destroyed || reducedMotion || !context) {
+        clearParticles();
+        return;
+      }
+      const elapsed = lastFrame ? Math.min(34, Math.max(8, timestamp - lastFrame)) : 16.67;
+      const step = elapsed / 16.67;
+      lastFrame = timestamp;
+      context.clearRect(0, 0, width, height);
+      for (let index = particles.length - 1; index >= 0; index -= 1) {
+        const particle = particles[index];
+        particle.life -= elapsed;
+        if (particle.life <= 0 || particle.y > height + 80 || particle.x < -100 || particle.x > width + 100) {
+          particles.splice(index, 1);
+          continue;
+        }
+        particle.vx *= Math.pow(particle.drag, step);
+        particle.vy += particle.gravity * step;
+        particle.x += particle.vx * step;
+        particle.y += particle.vy * step;
+        particle.rotation += particle.spin * step;
+        const progress = particle.life / particle.maxLife;
+        context.save();
+        context.globalAlpha = Math.max(0, Math.min(1, progress * 1.7));
+        context.translate(particle.x, particle.y);
+        context.rotate(particle.rotation);
+        context.fillStyle = particle.color;
+        if (particle.shape === "star") {
+          drawStar(particle);
+        } else if (particle.shape === "rain") {
+          context.fillRect(-particle.size / 2, -particle.size * 2, particle.size, particle.size * 4);
+        } else {
+          context.fillRect(-particle.size, -particle.size * 0.55, particle.size * 2, particle.size * 1.1);
+        }
+        context.restore();
+      }
+      if (particles.length) frameId = requestFrame(renderFrame);
+      else lastFrame = 0;
+    }
+    function startFrame() {
+      if (!destroyed && !reducedMotion && context && particles.length && frameId == null) {
+        frameId = requestFrame(renderFrame);
+      }
+    }
+    function addParticles(effect, requestedCount) {
+      if (reducedMotion || !context || destroyed) return false;
+      const available = Math.max(0, config.EFFECTS_MAX_PARTICLES - particles.length);
+      const count = Math.min(available, Math.max(0, requestedCount));
+      if (!count) return false;
+      const confettiColors = ["#a855f7", "#ec4899", "#22c55e", "#facc15", "#60a5fa", "#ffffff"];
+      for (let index = 0; index < count; index += 1) {
+        const isConfetti = effect === "confetti";
+        const isStars = effect === "stars";
+        const maxLife = isConfetti ? 2300 + Math.random() * 900 : isStars ? 1800 + Math.random() * 1000 : 1700 + Math.random() * 700;
+        particles.push({
+          x: isConfetti ? width * 0.5 : Math.random() * width,
+          y: isConfetti ? height * 0.48 : isStars ? height * (0.08 + Math.random() * 0.28) : -20 - Math.random() * height * 0.35,
+          vx: isConfetti ? (Math.random() - 0.5) * 12 : isStars ? (Math.random() - 0.5) * 1.4 : (Math.random() - 0.5) * 0.5,
+          vy: isConfetti ? -10 + Math.random() * 5 : isStars ? 0.4 + Math.random() * 1.1 : 4 + Math.random() * 4,
+          gravity: isConfetti ? 0.24 : isStars ? 0.015 : 0.055,
+          drag: isConfetti ? 0.992 : 0.998,
+          size: isConfetti ? 3 + Math.random() * 4 : isStars ? 2.5 + Math.random() * 3.5 : 1.2 + Math.random() * 2,
+          rotation: Math.random() * Math.PI * 2,
+          spin: (Math.random() - 0.5) * (isConfetti ? 0.25 : 0.08),
+          color: isConfetti ? confettiColors[index % confettiColors.length] : isStars ? ["#ffffff", "#bfdbfe", "#fde68a"][index % 3] : ["#ffffff", "#d1d5db", "#9ca3af", "#6b7280"][index % 4],
+          shape: isConfetti ? "confetti" : isStars ? "star" : "rain",
+          life: maxLife,
+          maxLife
+        });
+      }
+      startFrame();
+      return true;
+    }
+    function addCssEffect(className, duration) {
+      if (reducedMotion || destroyed || !cssLayer) return false;
+      while (cssLayer.children.length >= 6) cssLayer.firstElementChild.remove();
+      const element = documentRef.createElement("span");
+      element.className = className;
+      element.setAttribute("aria-hidden", "true");
+      cssLayer.appendChild(element);
+      const remove = () => element.remove();
+      element.addEventListener("animationend", remove, { once: true });
+      timers.set(remove, duration);
+      return true;
+    }
+    function trigger(effect, particlesCount = 0) {
+      if (effect === "confetti" || effect === "stars" || effect === "mono-rain") {
+        return addParticles(effect, particlesCount);
+      }
+      if (effect === "energy-wave") return addCssEffect("personchat-fx-wave", 1400);
+      if (effect === "hype-pulse") return addCssEffect("personchat-fx-pulse", 1250);
+      return false;
+    }
+    function setClimax(active) {
+      log.classList.toggle("pc-climax-active", Boolean(active));
+      backdrop.classList.toggle("pc-climax-active", Boolean(active));
+    }
+    function onResize() {
+      if (resizeTimer != null) timers.clear(resizeTimer);
+      resizeTimer = timers.set(() => {
+        resizeTimer = null;
+        resize();
+      }, 100);
+    }
+    function onMotionChange(event) {
+      reducedMotion = Boolean(event && event.matches);
+      if (reducedMotion) {
+        clearParticles();
+        cssLayer.replaceChildren();
+      }
+    }
+    resize();
+    windowRef.addEventListener("resize", onResize);
+    if (motionQuery) {
+      if (typeof motionQuery.addEventListener === "function") motionQuery.addEventListener("change", onMotionChange);
+      else if (typeof motionQuery.addListener === "function") motionQuery.addListener(onMotionChange);
+    }
+    return {
+      trigger,
+      setClimax,
+      isReducedMotion: () => reducedMotion,
+      destroy() {
+        if (destroyed) return;
+        destroyed = true;
+        if (resizeTimer != null) timers.clear(resizeTimer);
+        resizeTimer = null;
+        windowRef.removeEventListener("resize", onResize);
+        if (motionQuery) {
+          if (typeof motionQuery.removeEventListener === "function") motionQuery.removeEventListener("change", onMotionChange);
+          else if (typeof motionQuery.removeListener === "function") motionQuery.removeListener(onMotionChange);
+        }
+        clearParticles();
+        cssLayer.replaceChildren();
+        setClimax(false);
+        createdNodes.reverse().forEach((node) => node.remove());
+      }
+    };
+  }
   function isAllowedPlatform(platform, mode) {
     if (mode === "twitch-only") return platform === "twitch";
     if (mode === "non-twitch") return platform === "youtube" || platform === "kick";
@@ -1581,13 +2009,14 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
   function addEventBanner(row, events, config) {
     const decorators = row.querySelector(".message-decorators");
     if (!decorators) return;
-    const eventName = config.SHOW_EVENT_BANNERS ? events[0] || "" : "";
+    const detectedEvent = events[0] || "";
+    const eventName = config.SHOW_EVENT_BANNERS ? detectedEvent : "";
     const current = decorators.querySelector("[data-personchat-event-banner]");
+    Object.keys(EVENT_LABELS).forEach((event) => row.classList.remove("event-" + event));
+    if (detectedEvent) row.classList.add("event-" + detectedEvent);
     if (current && current.dataset.event === eventName) return;
     if (current) current.remove();
-    Object.keys(EVENT_LABELS).forEach((event) => row.classList.remove("event-" + event));
     if (!eventName) return;
-    row.classList.add("event-" + eventName);
     const banner = row.ownerDocument.createElement("div");
     banner.className = "special-banner banner-event banner-event-" + eventName;
     banner.dataset.personchatEventBanner = "1";
@@ -1804,6 +2233,10 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     let destroyed = false;
     let lifecycleVersion = 0;
     let activeAvatarFetches = 0;
+    let effectsEngine = null;
+    let climaxTimer = null;
+    let climaxCooldownUntil = 0;
+    let lastRepeatedPrune = 0;
     const sessionSeen = /* @__PURE__ */ new Set();
     const queuedRows = /* @__PURE__ */ new WeakSet();
     const queuedRefreshRows = /* @__PURE__ */ new WeakSet();
@@ -1815,14 +2248,208 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     const avatarPreloads = /* @__PURE__ */ new Set();
     const pendingStreamlabsMetadata = /* @__PURE__ */ new Map();
     const hideTimers = /* @__PURE__ */ new Map();
+    const mentionTimers = /* @__PURE__ */ new Map();
+    const effectCooldowns = /* @__PURE__ */ new Map();
+    const effectWindows = /* @__PURE__ */ new Map();
+    const activityTimestamps = [];
+    const repeatedGroups = /* @__PURE__ */ new Map();
+    const streamerNames = /* @__PURE__ */ new Set(config.STREAMER_NAMES.map(canonicalInteractiveText).filter(Boolean));
     function applySettings() {
       Array.from(log.classList).filter((token) => token.startsWith("theme-")).forEach((token) => log.classList.remove(token));
+      Array.from(log.classList).filter((token) => token.startsWith("motion-") || token.startsWith("text-effect-")).forEach((token) => log.classList.remove(token));
       log.classList.add("theme-" + config.THEME);
+      log.classList.add("motion-" + config.MESSAGE_ANIMATION);
+      log.classList.add("text-effect-" + config.TEXT_EFFECT);
       log.style.setProperty("--message-line-length", config.MESSAGE_LINE_LENGTH);
       log.classList.toggle("show-platform-badges", config.SHOW_PLATFORM_BADGE);
       log.classList.toggle("show-role-pills", config.SHOW_ROLE_PILLS);
       log.classList.toggle("show-event-banners", config.SHOW_EVENT_BANNERS);
       log.classList.toggle("compact-repeat-enabled", config.HIDE_REPEATED_AVATAR_AND_NAME);
+      log.classList.toggle("role-gradients-enabled", config.ROLE_GRADIENTS_ENABLED);
+    }
+    function identityAliases(identity) {
+      return [identity && identity.username, identity && identity.displayName, identity && identity.normalizedName].map(canonicalInteractiveText).map((name) => name.replace(/^@+/, "")).filter(Boolean);
+    }
+    function identifyStreamer(row, identity, roles) {
+      const aliases = identityAliases(identity);
+      const detectedBroadcaster = roles.includes("broadcaster");
+      if (detectedBroadcaster) aliases.forEach((alias) => streamerNames.add(alias));
+      const configuredStreamer = aliases.some((alias) => streamerNames.has(alias));
+      const isStreamer = detectedBroadcaster || configuredStreamer;
+      if (!isStreamer) return false;
+      if (!roles.includes("broadcaster")) roles.unshift("broadcaster");
+      row.classList.add("role-broadcaster");
+      if (config.STREAMER_HIGHLIGHT_ENABLED) row.classList.add("streamer-message");
+      return true;
+    }
+    function messageMentionsStreamer(messageText, reply) {
+      if (!streamerNames.size) return false;
+      const text = canonicalInteractiveText(messageText);
+      const replyTarget = canonicalInteractiveText(reply && reply.target).replace(/^@+/, "");
+      for (const name of streamerNames) {
+        if (replyTarget && replyTarget === name) return true;
+        const body = name.split(" ").map(escapeRegExp).join("\\s+");
+        try {
+          const pattern = new RegExp("(?:^|[^\\p{L}\\p{N}_@])@" + body + "(?=$|[^\\p{L}\\p{N}_])", "iu");
+          if (pattern.test(text)) return true;
+        } catch {
+        }
+      }
+      return false;
+    }
+    function addStreamerMention(row) {
+      row.classList.add("msg-streamer-mention", "msg-streamer-mention-active");
+      const headerRow = row.querySelector(".message-header-row");
+      if (headerRow && !headerRow.querySelector("[data-personchat-streamer-mention]")) {
+        const icon = documentRef.createElement("span");
+        icon.className = "streamer-mention-icon";
+        icon.dataset.personchatStreamerMention = "1";
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = "✦";
+        headerRow.appendChild(icon);
+      }
+      const previous = mentionTimers.get(row);
+      if (previous != null) timers.clear(previous);
+      const timer = timers.set(() => {
+        mentionTimers.delete(row);
+        if (documentRef.documentElement.contains(row)) row.classList.remove("msg-streamer-mention-active");
+      }, config.STREAMER_MENTION_DURATION);
+      mentionTimers.set(row, timer);
+    }
+    function registerClimaxActivity() {
+      if (!config.CLIMAX_ENABLED || !effectsEngine) return;
+      const timestamp = now();
+      while (activityTimestamps.length && timestamp - activityTimestamps[0] > config.CLIMAX_WINDOW) {
+        activityTimestamps.shift();
+      }
+      activityTimestamps.push(timestamp);
+      if (activityTimestamps.length < config.CLIMAX_MESSAGE_THRESHOLD || timestamp < climaxCooldownUntil)
+        return;
+      activityTimestamps.splice(0);
+      climaxCooldownUntil = timestamp + config.CLIMAX_COOLDOWN;
+      effectsEngine.setClimax(true);
+      if (climaxTimer != null) timers.clear(climaxTimer);
+      climaxTimer = timers.set(() => {
+        climaxTimer = null;
+        if (effectsEngine) effectsEngine.setClimax(false);
+      }, config.CLIMAX_DURATION);
+    }
+    function processWordEffects(messageText, identity, row) {
+      if (!config.WORD_EFFECTS_ENABLED || !effectsEngine || !messageText) return 0;
+      let triggered = 0;
+      const timestamp = now();
+      for (const rule of config.WORD_EFFECTS) {
+        if (!matchesWordEffect(messageText, rule)) continue;
+        const effectKey = canonicalInteractiveText(rule.trigger) + "\n" + rule.effect;
+        if (rule.threshold > 1) {
+          const previousHits = effectWindows.get(effectKey) || [];
+          const hits = previousHits.filter((hit) => timestamp - hit.timestamp <= rule.window);
+          const userKey = identity && identity.key || "anonymous";
+          if (!rule.uniqueUsers || !hits.some((hit) => hit.userKey === userKey)) {
+            hits.push({ timestamp, userKey });
+          }
+          const maxHits = Math.max(20, rule.threshold);
+          if (hits.length > maxHits) hits.splice(0, hits.length - maxHits);
+          effectWindows.set(effectKey, hits);
+          const count = rule.uniqueUsers ? new Set(hits.map((hit) => hit.userKey)).size : hits.length;
+          if (count < rule.threshold) continue;
+        }
+        if (triggered >= config.EFFECTS_MAX_PER_MESSAGE) continue;
+        const lastTriggered = effectCooldowns.get(effectKey);
+        if (lastTriggered != null && timestamp - lastTriggered < rule.cooldown) continue;
+        if (!effectsEngine.trigger(rule.effect, rule.particles)) continue;
+        if (rule.threshold > 1) effectWindows.delete(effectKey);
+        effectCooldowns.set(effectKey, timestamp);
+        row.dataset.personchatEffect = rule.effect;
+        triggered += 1;
+      }
+      return triggered;
+    }
+    function pruneRepeatedGroups(timestamp) {
+      if (timestamp - lastRepeatedPrune < 1e3 && repeatedGroups.size < 200) return;
+      lastRepeatedPrune = timestamp;
+      repeatedGroups.forEach((entry, key) => {
+        if (timestamp - entry.lastAt > config.GROUP_REPEATED_WINDOW || !documentRef.documentElement.contains(entry.row)) {
+          repeatedGroups.delete(key);
+        }
+      });
+    }
+    function groupRepeatedMessage(row, messageText, metadata) {
+      if (!config.GROUP_REPEATED_MESSAGES || metadata.hasSpecialState) return false;
+      const key = canonicalInteractiveText(messageText);
+      if (!key || key.length > config.GROUP_REPEATED_MAX_LENGTH) return false;
+      const timestamp = now();
+      pruneRepeatedGroups(timestamp);
+      let entry = repeatedGroups.get(key);
+      if (entry && !documentRef.documentElement.contains(entry.row)) {
+        repeatedGroups.delete(key);
+        entry = null;
+      }
+      if (!entry || entry.row === row) {
+        while (repeatedGroups.size >= 200) {
+          const oldest = repeatedGroups.keys().next().value;
+          repeatedGroups.delete(oldest);
+        }
+        repeatedGroups.set(key, { row, count: 1, lastAt: timestamp });
+        return false;
+      }
+      entry.count = Math.min(config.GROUP_REPEATED_MAX_COUNT, entry.count + 1);
+      entry.lastAt = timestamp;
+      repeatedGroups.delete(key);
+      repeatedGroups.set(key, entry);
+      const message = entry.row.querySelector(".user-message");
+      if (!message) {
+        repeatedGroups.delete(key);
+        return false;
+      }
+      let badge = message.querySelector("[data-personchat-repeat-count]");
+      if (!badge) {
+        badge = documentRef.createElement("span");
+        badge.className = "repeat-count-badge";
+        badge.dataset.personchatRepeatCount = "1";
+        badge.setAttribute("aria-label", "Mensagem repetida");
+        message.appendChild(badge);
+      }
+      entry.row.classList.remove("msg-compact-chain");
+      badge.textContent = "×" + entry.count;
+      badge.classList.remove("is-updated");
+      timers.set(() => {
+        if (documentRef.documentElement.contains(badge)) badge.classList.add("is-updated");
+      }, 16);
+      entry.row.classList.add("msg-repeat-group");
+      if (config.HIDE_AFTER > 0) {
+        clearRowTimer(entry.row);
+        const timer = setTimer(() => {
+          hideTimers.delete(entry.row);
+          removeWithFade(entry.row);
+        }, config.HIDE_AFTER * 1e3);
+        hideTimers.set(entry.row, timer);
+      }
+      row.remove();
+      return true;
+    }
+    function processInteractiveMessage(row, originalMessageText, metadata, processOptions) {
+      const state = rowStates.get(row) || {};
+      if (state.interactiveProcessed) return false;
+      state.interactiveProcessed = true;
+      rowStates.set(row, state);
+      const isStreamer = Boolean(metadata.isStreamer);
+      if (isStreamer) metadata.hasSpecialState = true;
+      if (config.EMOTE_ONLY_MODE && isEmoteOnlyMessage(metadata.messageElement)) {
+        row.classList.add("msg-emote-only");
+        metadata.hasSpecialState = true;
+      }
+      const historical = Boolean(processOptions.historical);
+      const isCommand = String(originalMessageText || "").trim().startsWith("!");
+      const isVisible = !row.hidden && !row.classList.contains("personchat-platform-filtered") && !row.classList.contains("deleted");
+      if (historical || isCommand || !isVisible) return false;
+      if (config.STREAMER_MENTION_ENABLED && !isStreamer && messageMentionsStreamer(originalMessageText, metadata.reply)) {
+        addStreamerMention(row);
+        metadata.hasSpecialState = true;
+      }
+      registerClimaxActivity();
+      processWordEffects(originalMessageText, metadata.identity, row);
+      return groupRepeatedMessage(row, originalMessageText, metadata);
     }
     function clearRowTimer(row) {
       const timer = hideTimers.get(row);
@@ -2079,18 +2706,27 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       const roles = getUserRoles(badgesElement, row);
       keepIconBadgesOnly(badgesElement);
       Array.from(row.classList).filter((token) => token.startsWith("role-")).forEach((token) => row.classList.remove(token));
+      row.classList.remove("streamer-message");
       roles.forEach((role) => row.classList.add("role-" + role));
+      const isStreamer = identifyStreamer(row, identity, roles);
       const userColor = normalizeToken(row.getAttribute("data-color"), 80) || "#888888";
       const nameElement = row.querySelector(".user-name");
       if (nameElement && isUsableColor(userColor)) nameElement.style.color = userColor;
       addPlatformBadge(row, platform, config);
-      addRolePills(row, roles, config);
       const eventName = normalizeToken(row.getAttribute("data-event-name"), 100);
       const currentEvent = normalizeToken(row.getAttribute("data-event"), 100).toLowerCase();
       if ((!currentEvent || currentEvent === "message" || currentEvent === "chat") && eventName) {
         row.setAttribute("data-event", eventName);
       }
       const events = detectMessageEvents(row);
+      if (events.includes("raid") && !roles.includes("raider")) {
+        const moderatorIndex = roles.indexOf("moderator");
+        const broadcasterIndex = roles.indexOf("broadcaster");
+        const insertAt = moderatorIndex >= 0 ? moderatorIndex + 1 : broadcasterIndex >= 0 ? broadcasterIndex + 1 : 0;
+        roles.splice(insertAt, 0, "raider");
+        row.classList.add("role-raider");
+      }
+      addRolePills(row, roles, config);
       addEventBanner(row, events, config);
       const rawAvatar = getRawAvatar(row, config);
       const avatarSignature = identity.key + "\n" + rawAvatar;
@@ -2115,7 +2751,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         removeReplyMentionFromMessage(messageElement, reply.target);
       }
       const hasSpecialState = Boolean(
-        firstKind || reply.target || events.length || row.classList.contains("msg-first-message") || row.classList.contains("msg-session-first")
+        isStreamer || firstKind || reply.target || events.length || row.classList.contains("msg-first-message") || row.classList.contains("msg-session-first")
       );
       if (!processOptions.initial && hasSpecialState) row.classList.remove("msg-compact-chain");
       if (lastVisibleMessage && lastVisibleMessage.row === row) {
@@ -2124,7 +2760,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       state.historical = state.historical || Boolean(processOptions.historical);
       state.identityKey = identity.key;
       rowStates.set(row, state);
-      return { identity, messageElement, events, reply, firstKind, hasSpecialState };
+      return { identity, messageElement, roles, events, reply, firstKind, hasSpecialState, isStreamer };
     }
     function processRow(row, processOptions = {}) {
       if (!rowIsReady(row)) return false;
@@ -2146,6 +2782,10 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         historical: Boolean(processOptions.historical)
       });
       if (!metadata) return true;
+      if (processInteractiveMessage(row, messageText, metadata, processOptions)) {
+        trimMessages();
+        return true;
+      }
       applyMessageChain(row, metadata.identity.key, metadata.hasSpecialState);
       embedImages(row, config, timers);
       if (config.HIDE_AFTER > 0) {
@@ -2195,6 +2835,9 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     function clearRemovedRows(node) {
       rowsFromNode(node).forEach((row) => {
         clearRowTimer(row);
+        const mentionTimer = mentionTimers.get(row);
+        if (mentionTimer != null) timers.clear(mentionTimer);
+        mentionTimers.delete(row);
         if (lastVisibleMessage && lastVisibleMessage.row === row) lastVisibleMessage = null;
       });
     }
@@ -2225,6 +2868,11 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         }
         const targetElement = mutation.target.nodeType === 1 ? mutation.target : mutation.target.parentElement;
         const touchesBadges = Boolean(targetElement?.closest?.(".badges"));
+        const touchesMessage = Boolean(targetElement?.closest?.(".user-message"));
+        if (touchesMessage && config.EMOTE_ONLY_MODE) {
+          const messageElement = row.querySelector(".user-message");
+          row.classList.toggle("msg-emote-only", isEmoteOnlyMessage(messageElement));
+        }
         if (mutation.type === "attributes" || touchesBadges) queueRefreshRow(row);
       });
     }
@@ -2241,6 +2889,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       destroyed = false;
       lifecycleVersion += 1;
       started = true;
+      effectsEngine = createEffectsEngine({ documentRef, windowRef, config, timers, now, log });
       applySettings();
       documentRef.addEventListener("onEventReceived", onStreamlabsEvent);
       log.querySelectorAll(".message-row").forEach((row) => {
@@ -2273,6 +2922,12 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       if (observer) observer.disconnect();
       observer = null;
       documentRef.removeEventListener("onEventReceived", onStreamlabsEvent);
+      if (climaxTimer != null) timers.clear(climaxTimer);
+      climaxTimer = null;
+      mentionTimers.forEach((timer) => timers.clear(timer));
+      mentionTimers.clear();
+      if (effectsEngine) effectsEngine.destroy();
+      effectsEngine = null;
       if (radarTimer != null) clearTimer(radarTimer);
       radarTimer = null;
       avatarFetchQueue.splice(0).forEach((entry) => entry.resolve(null));
@@ -2288,6 +2943,12 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       pendingAvatarFetches.clear();
       negativeAvatarFetches.clear();
       pendingStreamlabsMetadata.clear();
+      effectCooldowns.clear();
+      effectWindows.clear();
+      activityTimestamps.splice(0);
+      repeatedGroups.clear();
+      lastRepeatedPrune = 0;
+      climaxCooldownUntil = 0;
       hideTimers.forEach((timer) => clearTimer(timer));
       hideTimers.clear();
       auxiliaryTimers.forEach((timer) => clearTimer(timer));
@@ -2295,6 +2956,10 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       windowRef.removeEventListener("beforeunload", flush);
       documentRef.removeEventListener("visibilitychange", onVisibilityChange);
       avatarStore.dispose();
+      if (log) {
+        log.classList.remove("pc-climax-active");
+        log.querySelectorAll(".msg-streamer-mention-active").forEach((row) => row.classList.remove("msg-streamer-mention-active"));
+      }
       lastVisibleMessage = null;
       started = false;
     }
@@ -2310,6 +2975,8 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
           started,
           radarReady,
           sessionSeen: new Set(sessionSeen),
+          streamerNames: new Set(streamerNames),
+          climaxActive: Boolean(log && log.classList.contains("pc-climax-active")),
           avatarStore: avatarStore.status(),
           lastVisibleRow: lastVisibleMessage && lastVisibleMessage.row
         };
@@ -2385,6 +3052,10 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     };
   }
   if (typeof document !== "undefined" && typeof window !== "undefined") {
-    bootstrapPersonChat();
+    const previousBootstrap = window.__personChatBootstrap;
+    const previousOverlay = window.__personChatOverlay;
+    if (previousBootstrap && typeof previousBootstrap.destroy === "function") previousBootstrap.destroy();
+    else if (previousOverlay && typeof previousOverlay.destroy === "function") previousOverlay.destroy();
+    window.__personChatBootstrap = bootstrapPersonChat();
   }
 })();

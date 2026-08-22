@@ -1,4 +1,6 @@
-<!-- PersonChat v7.2.0 | Streamlabs Chat Box -->
+<!-- PersonChat v7.3.0 | Streamlabs Chat Box -->
+<div id="personchat-effects-backdrop" class="personchat-effects-layer" aria-hidden="true"></div>
+
 <div
     id="log"
     class="main-container sl__chat__layout"
@@ -7,6 +9,11 @@
     aria-relevant="additions"
     aria-atomic="false"
 ></div>
+
+<div id="personchat-effects-overlay" class="personchat-effects-layer" aria-hidden="true">
+    <canvas id="personchat-effects-canvas"></canvas>
+    <div id="personchat-effects-css"></div>
+</div>
 
 <script type="text/template" id="chatlist_item">
 <div class="message-row"
