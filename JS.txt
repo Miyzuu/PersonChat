@@ -1,0 +1,2390 @@
+// PersonChat v7.2.0 | Streamlabs Chat Box
+// ===== CONFIGURACAO EDITAVEL DO PERSONCHAT =====
+// Ajuste somente este objeto antes de colar o arquivo no widget.
+globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
+    "THEME": "dark-purple",
+    "MESSAGE_LINE_LENGTH": "25ch",
+    "MAX_MESSAGES": 50,
+    "HIDE_AFTER": 0,
+    "MAX_CONCURRENT_AVATAR_FETCHES": 3,
+    "MAX_QUEUED_AVATAR_FETCHES": 30,
+    "AVATAR_FAILURE_COOLDOWN": 60000,
+    "FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN": true,
+    "FETCH_KICK_AVATAR": true,
+    "HIDE_COMMANDS": true,
+    "SHOW_PLATFORM_BADGE": false,
+    "SHOW_ROLE_PILLS": false,
+    "SHOW_EVENT_BANNERS": false,
+    "HIDE_REPEATED_AVATAR_AND_NAME": true,
+    "REPEATED_MESSAGE_WINDOW": 120000,
+    "FIRST_MESSAGE_MODE": "off",
+    "PLATFORM_DISPLAY_MODE": "combined",
+    "REPLY_FALLBACK_FROM_LEADING_MENTION": true,
+    "EMBED_IMAGES": false,
+    "IMAGE_ALLOWED_HOSTS": [],
+    "MAX_EMBEDDED_IMAGES_PER_MESSAGE": 1,
+    "IMAGE_MAX_URL_LENGTH": 2048,
+    "IMAGE_LOAD_TIMEOUT": 5000
+};
+
+// Arquivo gerado por npm run build. Edite os módulos em src/ durante o desenvolvimento.
+(() => {
+  // src/config.js
+  var THEMES = Object.freeze([
+    "pink-gold",
+    "dark-purple",
+    "kick-green",
+    "youtube-red",
+    "clean-white"
+  ]);
+  var FIRST_MESSAGE_MODES = Object.freeze([
+    "native-only",
+    "native-or-session",
+    "session-only",
+    "off"
+  ]);
+  var PLATFORM_DISPLAY_MODES = Object.freeze(["combined", "twitch-only", "non-twitch"]);
+  var DEFAULT_CONFIG = Object.freeze({
+    THEME: "dark-purple",
+    MESSAGE_LINE_LENGTH: "25ch",
+    MAX_MESSAGES: 50,
+    HIDE_AFTER: 0,
+    HIDE_COMMANDS: true,
+    SHOW_PLATFORM_BADGE: false,
+    SHOW_ROLE_PILLS: false,
+    SHOW_EVENT_BANNERS: false,
+    HIDE_REPEATED_AVATAR_AND_NAME: true,
+    REPEATED_MESSAGE_WINDOW: 12e4,
+    PLATFORM_DISPLAY_MODE: "combined",
+    AVATAR_CACHE_KEY: "chatbox_avatar_db_v3",
+    AVATAR_LEGACY_KEYS: Object.freeze(["chatbox_avatar_db_v2", "tw_avatar_db_v1"]),
+    MAX_AVATAR_DB_SIZE: 1500,
+    AVATAR_EXPIRY: 5 * 24 * 60 * 60 * 1e3,
+    AVATAR_SAVE_DEBOUNCE: 3e3,
+    AVATAR_MAX_URL_LENGTH: 4096,
+    AVATAR_FETCH_TIMEOUT: 5e3,
+    MAX_CONCURRENT_AVATAR_FETCHES: 3,
+    MAX_QUEUED_AVATAR_FETCHES: 30,
+    AVATAR_FAILURE_COOLDOWN: 60 * 1e3,
+    FIRST_MESSAGE_MODE: "off",
+    FIRST_MESSAGE_WARMUP: 1e4,
+    FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN: true,
+    FETCH_KICK_AVATAR: true,
+    EMBED_IMAGES: false,
+    IMAGE_ALLOWED_HOSTS: Object.freeze([]),
+    MAX_EMBEDDED_IMAGES_PER_MESSAGE: 1,
+    IMAGE_MAX_URL_LENGTH: 2048,
+    IMAGE_LOAD_TIMEOUT: 5e3,
+    REPLY_FALLBACK_FROM_LEADING_MENTION: true,
+    DEBUG: false
+  });
+  var BOOLEAN_FIELDS = Object.freeze([
+    "HIDE_COMMANDS",
+    "SHOW_PLATFORM_BADGE",
+    "SHOW_ROLE_PILLS",
+    "SHOW_EVENT_BANNERS",
+    "HIDE_REPEATED_AVATAR_AND_NAME",
+    "FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN",
+    "FETCH_KICK_AVATAR",
+    "EMBED_IMAGES",
+    "REPLY_FALLBACK_FROM_LEADING_MENTION",
+    "DEBUG"
+  ]);
+  var NUMBER_RULES = Object.freeze({
+    MAX_MESSAGES: { min: 1, max: 500, integer: true },
+    HIDE_AFTER: { min: 0, max: 86400, integer: false },
+    REPEATED_MESSAGE_WINDOW: { min: 0, max: 36e5, integer: true },
+    MAX_AVATAR_DB_SIZE: { min: 1, max: 5e4, integer: true },
+    AVATAR_EXPIRY: { min: 6e4, max: 31536e6, integer: true },
+    AVATAR_SAVE_DEBOUNCE: { min: 0, max: 6e4, integer: true },
+    AVATAR_MAX_URL_LENGTH: { min: 256, max: 16384, integer: true },
+    AVATAR_FETCH_TIMEOUT: { min: 1e3, max: 3e4, integer: true },
+    MAX_CONCURRENT_AVATAR_FETCHES: { min: 1, max: 16, integer: true },
+    MAX_QUEUED_AVATAR_FETCHES: { min: 1, max: 500, integer: true },
+    AVATAR_FAILURE_COOLDOWN: { min: 1e3, max: 36e5, integer: true },
+    FIRST_MESSAGE_WARMUP: { min: 0, max: 3e5, integer: true },
+    MAX_EMBEDDED_IMAGES_PER_MESSAGE: { min: 1, max: 4, integer: true },
+    IMAGE_MAX_URL_LENGTH: { min: 256, max: 8192, integer: true },
+    IMAGE_LOAD_TIMEOUT: { min: 1e3, max: 3e4, integer: true }
+  });
+  var CSS_LENGTH_PATTERN = /^(?:0|(?:\d+(?:\.\d+)?)(?:px|em|rem|ch|vw|vh|%))$/i;
+  var HOST_PATTERN = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
+  function isRecord(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  }
+  function emitDebug(debug, payload) {
+    if (typeof debug !== "function") return;
+    try {
+      debug(Object.assign({ scope: "config" }, payload));
+    } catch {
+    }
+  }
+  function asBoolean(value, fallback) {
+    if (typeof value === "boolean") return value;
+    const token = String(value == null ? "" : value).trim().toLowerCase();
+    if (["1", "true", "yes", "sim"].includes(token)) return true;
+    if (["0", "false", "no", "nao", "não"].includes(token)) return false;
+    return fallback;
+  }
+  function asNumber(value, fallback, rule) {
+    if (value == null || String(value).trim() === "") return fallback;
+    const number = typeof value === "number" ? value : Number(String(value == null ? "" : value).trim());
+    if (!Number.isFinite(number)) return fallback;
+    if (rule.integer && !Number.isInteger(number)) return fallback;
+    if (number < rule.min || number > rule.max) return fallback;
+    return number;
+  }
+  function asEnum(value, allowed, fallback) {
+    const token = String(value == null ? "" : value).trim().toLowerCase();
+    return allowed.includes(token) ? token : fallback;
+  }
+  function normalizeHost(value) {
+    let host = String(value == null ? "" : value).trim().toLowerCase();
+    if (!host) return "";
+    try {
+      if (host.includes("://")) host = new URL(host).hostname.toLowerCase();
+    } catch {
+      return "";
+    }
+    host = host.replace(/\.$/, "");
+    if (!HOST_PATTERN.test(host) || host === "localhost" || host.endsWith(".local")) return "";
+    return host;
+  }
+  function asHosts(value, fallback) {
+    if (!Array.isArray(value)) return Array.from(fallback);
+    return Array.from(new Set(value.map(normalizeHost).filter(Boolean)));
+  }
+  function asKey(value, fallback) {
+    const key = String(value == null ? "" : value).trim();
+    const hasControlCharacter = Array.from(key).some((character) => character.charCodeAt(0) <= 31);
+    if (!key || key.length > 128 || /[{}]/.test(key) || hasControlCharacter) return fallback;
+    return key;
+  }
+  function collectErrors(input) {
+    if (!isRecord(input)) {
+      return [
+        { field: "$", code: "invalid-object", message: "A configuracao deve ser um objeto." }
+      ];
+    }
+    const errors = [];
+    const add = (field, code, message) => errors.push({ field, code, message, value: input[field] });
+    if ("THEME" in input && !THEMES.includes(String(input.THEME).trim().toLowerCase())) {
+      add("THEME", "invalid-enum", "Tema fora da allowlist.");
+    }
+    if ("FIRST_MESSAGE_MODE" in input && !FIRST_MESSAGE_MODES.includes(String(input.FIRST_MESSAGE_MODE).trim().toLowerCase())) {
+      add("FIRST_MESSAGE_MODE", "invalid-enum", "Modo de primeira mensagem invalido.");
+    }
+    if ("PLATFORM_DISPLAY_MODE" in input && !PLATFORM_DISPLAY_MODES.includes(String(input.PLATFORM_DISPLAY_MODE).trim().toLowerCase())) {
+      add("PLATFORM_DISPLAY_MODE", "invalid-enum", "Modo de exibicao de plataforma invalido.");
+    }
+    if ("MESSAGE_LINE_LENGTH" in input && !CSS_LENGTH_PATTERN.test(String(input.MESSAGE_LINE_LENGTH).trim())) {
+      add(
+        "MESSAGE_LINE_LENGTH",
+        "invalid-css-length",
+        "Use uma unidade CSS de comprimento permitida."
+      );
+    }
+    BOOLEAN_FIELDS.forEach((field) => {
+      if (!(field in input)) return;
+      const token = String(input[field]).trim().toLowerCase();
+      if (typeof input[field] !== "boolean" && !["0", "1", "true", "false", "yes", "no", "sim", "nao", "não"].includes(token)) {
+        add(field, "invalid-boolean", "Valor booleano invalido.");
+      }
+    });
+    Object.entries(NUMBER_RULES).forEach(([field, rule]) => {
+      if (!(field in input)) return;
+      const raw = input[field] == null ? "" : String(input[field]).trim();
+      const value = raw === "" ? Number.NaN : typeof input[field] === "number" ? input[field] : Number(raw);
+      if (!Number.isFinite(value) || rule.integer && !Number.isInteger(value) || value < rule.min || value > rule.max) {
+        add(field, "invalid-number", "Numero fora do intervalo permitido.");
+      }
+    });
+    if ("IMAGE_ALLOWED_HOSTS" in input) {
+      if (!Array.isArray(input.IMAGE_ALLOWED_HOSTS)) {
+        add("IMAGE_ALLOWED_HOSTS", "invalid-array", "A allowlist deve ser uma lista de hosts.");
+      } else if (input.IMAGE_ALLOWED_HOSTS.some((host) => !normalizeHost(host))) {
+        add("IMAGE_ALLOWED_HOSTS", "invalid-host", "A allowlist contem um host invalido.");
+      }
+    }
+    ["AVATAR_CACHE_KEY"].forEach((field) => {
+      if (field in input && asKey(input[field], "") === "")
+        add(field, "invalid-key", "Chave de storage invalida.");
+    });
+    ["AVATAR_LEGACY_KEYS"].forEach((field) => {
+      if (field in input && (!Array.isArray(input[field]) || input[field].some((key) => asKey(key, "") === ""))) {
+        add(field, "invalid-array", "Lista de chaves legadas invalida.");
+      }
+    });
+    return errors;
+  }
+  function normalizeConfig(overrides = {}, options = {}) {
+    const input = isRecord(overrides) ? overrides : {};
+    const debug = options && options.debug;
+    const config = Object.assign({}, DEFAULT_CONFIG);
+    config.THEME = asEnum(input.THEME, THEMES, DEFAULT_CONFIG.THEME);
+    config.FIRST_MESSAGE_MODE = asEnum(
+      input.FIRST_MESSAGE_MODE,
+      FIRST_MESSAGE_MODES,
+      DEFAULT_CONFIG.FIRST_MESSAGE_MODE
+    );
+    config.PLATFORM_DISPLAY_MODE = asEnum(
+      input.PLATFORM_DISPLAY_MODE,
+      PLATFORM_DISPLAY_MODES,
+      DEFAULT_CONFIG.PLATFORM_DISPLAY_MODE
+    );
+    const lineLength = String(
+      input.MESSAGE_LINE_LENGTH == null ? DEFAULT_CONFIG.MESSAGE_LINE_LENGTH : input.MESSAGE_LINE_LENGTH
+    ).trim();
+    config.MESSAGE_LINE_LENGTH = CSS_LENGTH_PATTERN.test(lineLength) ? lineLength : DEFAULT_CONFIG.MESSAGE_LINE_LENGTH;
+    BOOLEAN_FIELDS.forEach((field) => {
+      config[field] = asBoolean(input[field], DEFAULT_CONFIG[field]);
+    });
+    Object.entries(NUMBER_RULES).forEach(([field, rule]) => {
+      config[field] = asNumber(input[field], DEFAULT_CONFIG[field], rule);
+    });
+    config.IMAGE_ALLOWED_HOSTS = asHosts(
+      input.IMAGE_ALLOWED_HOSTS,
+      DEFAULT_CONFIG.IMAGE_ALLOWED_HOSTS
+    );
+    config.AVATAR_CACHE_KEY = asKey(input.AVATAR_CACHE_KEY, DEFAULT_CONFIG.AVATAR_CACHE_KEY);
+    config.AVATAR_LEGACY_KEYS = Array.isArray(input.AVATAR_LEGACY_KEYS) ? Array.from(new Set(input.AVATAR_LEGACY_KEYS.map((key) => asKey(key, "")).filter(Boolean))) : Array.from(DEFAULT_CONFIG.AVATAR_LEGACY_KEYS);
+    collectErrors(overrides).forEach(
+      (error) => emitDebug(debug, {
+        level: "warn",
+        event: "invalid-config",
+        error
+      })
+    );
+    return config;
+  }
+  function readRuntimeUserConfig() {
+    try {
+      if (typeof globalThis === "undefined" || !isRecord(globalThis.PERSONCHAT_CONFIG)) return {};
+      return Object.assign({}, globalThis.PERSONCHAT_CONFIG);
+    } catch {
+      return {};
+    }
+  }
+  var USER_CONFIG = Object.freeze(readRuntimeUserConfig());
+  var CONFIG = Object.freeze(normalizeConfig(USER_CONFIG));
+
+  // src/utils.js
+  var KNOWN_TEMPLATE_PLACEHOLDERS = new Set(
+    [
+      "activity",
+      "badges",
+      "channel",
+      "color",
+      "displayName",
+      "event",
+      "eventName",
+      "eventType",
+      "first_msg",
+      "from",
+      "fromId",
+      "is_first_message",
+      "isFirstMessage",
+      "message",
+      "messageId",
+      "messageSource",
+      "messageType",
+      "platform",
+      "profileImageUrl",
+      "provider",
+      "replyParentDisplayName",
+      "replyParentMessageId",
+      "replyParentUsername",
+      "replyParentUserId",
+      "replyParentUserName",
+      "replyTo",
+      "replyToName",
+      "replyToUserId",
+      "senderId",
+      "service",
+      "site",
+      "source",
+      "type",
+      "userId",
+      "username"
+    ].map((name) => name.toLowerCase())
+  );
+  function isUnresolvedTemplatePlaceholder(token) {
+    if (token === "{}") return true;
+    const match = token.match(/^\{([^{}]+)\}$/);
+    return Boolean(match && KNOWN_TEMPLATE_PLACEHOLDERS.has(match[1].toLowerCase()));
+  }
+  function normalizeToken(value, maxLength = 512) {
+    const token = String(value == null ? "" : value).replace(/[\t\n\r]+/g, " ").trim();
+    if (!token || token.length > maxLength) return "";
+    const hasForbiddenControl = Array.from(token).some((character) => {
+      const code = character.charCodeAt(0);
+      return code <= 8 || code === 11 || code === 12 || code >= 14 && code <= 31 || code === 127;
+    });
+    if (isUnresolvedTemplatePlaceholder(token) || hasForbiddenControl) return "";
+    return token;
+  }
+  function normalizeUsername(value) {
+    const username = normalizeToken(value, 100).replace(/^@/, "").trim();
+    return username && !/\s{2,}/.test(username) ? username : "";
+  }
+  function normalizeIdentifier(value) {
+    const id = normalizeToken(value, 256);
+    return /^[A-Za-z0-9_.:@-]+$/.test(id) ? id : "";
+  }
+  function escapeXml(value) {
+    return String(value == null ? "" : value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+  }
+  function isUsableColor(value) {
+    const color = normalizeToken(value, 80);
+    if (!color || /[;{}]|url\s*\(/i.test(color)) return false;
+    if (/^#[0-9a-f]{3,4}(?:[0-9a-f]{3,4})?$/i.test(color)) return true;
+    const number = "[+-]?(?:\\d+(?:\\.\\d+)?|\\.\\d+)";
+    const rgb = number + "%?";
+    const alpha = "(?:" + number + "%?)";
+    const hue = number + "(?:deg|grad|rad|turn)?";
+    const rgbComma = new RegExp(
+      "^rgba?\\(\\s*" + rgb + "\\s*,\\s*" + rgb + "\\s*,\\s*" + rgb + "(?:\\s*,\\s*" + alpha + ")?\\s*\\)$",
+      "i"
+    );
+    const rgbSpace = new RegExp(
+      "^rgba?\\(\\s*" + rgb + "\\s+" + rgb + "\\s+" + rgb + "(?:\\s*\\/\\s*" + alpha + ")?\\s*\\)$",
+      "i"
+    );
+    const hslComma = new RegExp(
+      "^hsla?\\(\\s*" + hue + "\\s*,\\s*" + number + "%\\s*,\\s*" + number + "%(?:\\s*,\\s*" + alpha + ")?\\s*\\)$",
+      "i"
+    );
+    const hslSpace = new RegExp(
+      "^hsla?\\(\\s*" + hue + "\\s+" + number + "%\\s+" + number + "%(?:\\s*\\/\\s*" + alpha + ")?\\s*\\)$",
+      "i"
+    );
+    return rgbComma.test(color) || rgbSpace.test(color) || hslComma.test(color) || hslSpace.test(color);
+  }
+  function escapeRegExp(value) {
+    return String(value == null ? "" : value).replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+  }
+  function getAttribute(element, name) {
+    if (!element || typeof element.getAttribute !== "function") return "";
+    try {
+      return normalizeToken(element.getAttribute(name));
+    } catch {
+      return "";
+    }
+  }
+  function getClassTokens(element) {
+    if (!element) return [];
+    try {
+      if (element.classList && typeof element.classList[Symbol.iterator] === "function") {
+        return Array.from(element.classList, (token) => String(token).toLowerCase()).filter(
+          Boolean
+        );
+      }
+    } catch {
+    }
+    const raw = typeof element.className === "string" ? element.className : element.className && element.className.baseVal || "";
+    return String(raw).toLowerCase().split(/\s+/).filter(Boolean);
+  }
+  function queryOne(element, selector) {
+    if (!element || typeof element.querySelector !== "function") return null;
+    try {
+      return element.querySelector(selector);
+    } catch {
+      return null;
+    }
+  }
+  function queryAll(element, selector) {
+    if (!element || typeof element.querySelectorAll !== "function") return [];
+    try {
+      return Array.from(element.querySelectorAll(selector));
+    } catch {
+      return [];
+    }
+  }
+  function isPlainRecord(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
+  }
+  var INTERNAL_HOST_SUFFIXES = Object.freeze([
+    "localhost",
+    "local",
+    "localdomain",
+    "internal",
+    "intranet",
+    "lan",
+    "home",
+    "home.arpa",
+    "corp",
+    "private",
+    "test",
+    "invalid",
+    "example",
+    "onion"
+  ]);
+  var PUBLIC_HOSTNAME_PATTERN = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
+  function hostMatchesSuffix(host, suffix) {
+    return host === suffix || host.endsWith("." + suffix);
+  }
+  function parseIpv4(host) {
+    const octets = host.split(".").map(Number);
+    if (octets.length !== 4 || !octets.every((octet) => Number.isInteger(octet) && octet >= 0 && octet <= 255)) {
+      return null;
+    }
+    return octets;
+  }
+  function isPublicIpv4(octets) {
+    const [first, second, third] = octets;
+    if (first === 0 || first === 10 || first === 127) return false;
+    if (first === 100 && second >= 64 && second <= 127) return false;
+    if (first === 169 && second === 254) return false;
+    if (first === 172 && second >= 16 && second <= 31) return false;
+    if (first === 192 && second === 0 && third === 0) return false;
+    if (first === 192 && second === 0 && third === 2) return false;
+    if (first === 192 && second === 88 && third === 99) return false;
+    if (first === 192 && second === 168) return false;
+    if (first === 198 && (second === 18 || second === 19)) return false;
+    if (first === 198 && second === 51 && third === 100) return false;
+    if (first === 203 && second === 0 && third === 113) return false;
+    return first > 0 && first < 224;
+  }
+  function isPublicHostname(host) {
+    if (host.length > 253 || !PUBLIC_HOSTNAME_PATTERN.test(host)) return false;
+    return !INTERNAL_HOST_SUFFIXES.some((suffix) => hostMatchesSuffix(host, suffix));
+  }
+  function isPublicHttpUrl(value, maxLength = 4096) {
+    const raw = normalizeToken(value, maxLength);
+    if (!raw) return false;
+    try {
+      const url = new URL(raw);
+      if (url.protocol !== "https:" || url.username || url.password) return false;
+      const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "").replace(/\.$/, "");
+      if (!host) return false;
+      const ipv4 = parseIpv4(host);
+      if (ipv4) return isPublicIpv4(ipv4);
+      if (host.includes(":")) return false;
+      return isPublicHostname(host);
+    } catch {
+      return false;
+    }
+  }
+
+  // src/detection.js
+  var KNOWN_PLATFORMS = Object.freeze(["twitch", "youtube", "kick"]);
+  var PLATFORM_AVATAR_DOMAINS = Object.freeze({
+    twitch: Object.freeze(["twitch.tv", "jtvnw.net", "twitchcdn.com", "twitchcdn.net"]),
+    youtube: Object.freeze(["youtube.com", "ytimg.com", "googleusercontent.com", "ggpht.com"]),
+    kick: Object.freeze(["kick.com", "kickcdn.com", "kickcdn.net", "kickusercontent.com"])
+  });
+  function normalizePlatform(value) {
+    const token = normalizeToken(value, 100).toLowerCase();
+    if (!token) return "unknown";
+    if (/^(?:twitch|twitchtv|twitch-tv)$/.test(token)) return "twitch";
+    if (/^(?:youtube|youtube-live|yt|yt-live)$/.test(token)) return "youtube";
+    if (/^(?:kick|kick-live|kickstreaming)$/.test(token)) return "kick";
+    const parts = token.split(/[^a-z0-9]+/).filter(Boolean);
+    if (parts.includes("twitch")) return "twitch";
+    if (parts.includes("youtube") || parts.includes("yt")) return "youtube";
+    if (parts.includes("kick")) return "kick";
+    return "unknown";
+  }
+  function platformFromClasses(element) {
+    for (const token of getClassTokens(element)) {
+      const pieces = token.split(/[-_:]/).filter(Boolean);
+      for (const piece of pieces) {
+        const platform = normalizePlatform(piece);
+        if (KNOWN_PLATFORMS.includes(platform)) return platform;
+      }
+    }
+    return "unknown";
+  }
+  function hostMatchesDomain(host, domain) {
+    return host === domain || host.endsWith("." + domain);
+  }
+  function platformFromAvatar(row) {
+    const avatar = Array.from(row.children || []).find((element) => element.classList?.contains("avatar")) || null;
+    const raw = getAttribute(avatar, "data-avatar") || getAttribute(avatar, "src") || getAttribute(row, "data-avatar");
+    if (!raw) return "unknown";
+    try {
+      const host = new URL(raw).hostname.toLowerCase().replace(/\.$/, "");
+      for (const platform of KNOWN_PLATFORMS) {
+        if (PLATFORM_AVATAR_DOMAINS[platform].some((domain) => hostMatchesDomain(host, domain))) {
+          return platform;
+        }
+      }
+    } catch {
+      return "unknown";
+    }
+    return "unknown";
+  }
+  function platformFromBadges(row) {
+    const badges = queryOne(row, ".badges");
+    if (!badges) return "unknown";
+    const candidates = queryAll(
+      badges,
+      "img, svg, use, [data-platform], [data-provider], [data-service], [data-source]"
+    );
+    for (const candidate of candidates) {
+      const structuredValues = [
+        getAttribute(candidate, "data-platform"),
+        getAttribute(candidate, "data-provider"),
+        getAttribute(candidate, "data-service"),
+        getAttribute(candidate, "data-source"),
+        getAttribute(candidate, "alt"),
+        getAttribute(candidate, "title"),
+        getAttribute(candidate, "aria-label")
+      ];
+      for (const value of structuredValues) {
+        const platform = normalizePlatform(value);
+        if (platform !== "unknown") return platform;
+      }
+      const classPlatform = platformFromClasses(candidate);
+      if (classPlatform !== "unknown") return classPlatform;
+      const rawUrl = getAttribute(candidate, "src") || getAttribute(candidate, "href") || getAttribute(candidate, "xlink:href");
+      if (!rawUrl) continue;
+      try {
+        const host = new URL(rawUrl).hostname.toLowerCase().replace(/\.$/, "");
+        for (const platform of KNOWN_PLATFORMS) {
+          if (PLATFORM_AVATAR_DOMAINS[platform].some(
+            (domain) => hostMatchesDomain(host, domain)
+          )) {
+            return platform;
+          }
+        }
+      } catch {
+      }
+    }
+    return "unknown";
+  }
+  function getPlatform(row) {
+    if (!row) return "unknown";
+    const attrs = [
+      "data-platform",
+      "data-provider",
+      "data-service",
+      "data-site",
+      "data-channel-platform",
+      "data-message-source",
+      "data-source"
+    ];
+    for (const attr of attrs) {
+      const platform = normalizePlatform(getAttribute(row, attr));
+      if (platform !== "unknown") return platform;
+    }
+    const fromRowClass = platformFromClasses(row);
+    if (fromRowClass !== "unknown") return fromRowClass;
+    const fromBadges = platformFromBadges(row);
+    if (fromBadges !== "unknown") return fromBadges;
+    return platformFromAvatar(row);
+  }
+  function getUserIdentity(row, platform = getPlatform(row)) {
+    const normalizedPlatform = normalizePlatform(platform);
+    const idAttrs = [
+      "data-user-id",
+      "data-userid",
+      "data-author-id",
+      "data-sender-id",
+      "data-from-id",
+      "data-user-uuid"
+    ];
+    const displayNameAttrs = [
+      "data-from",
+      "data-display-name",
+      "data-author-name",
+      "data-sender-name"
+    ];
+    const loginAttrs = ["data-username", "data-user-name", "data-login"];
+    let id = "";
+    for (const attr of idAttrs) {
+      id = normalizeIdentifier(getAttribute(row, attr));
+      if (id) break;
+    }
+    let displayName = "";
+    for (const attr of displayNameAttrs) {
+      displayName = normalizeUsername(getAttribute(row, attr));
+      if (displayName) break;
+    }
+    if (!displayName) {
+      const nameElement = queryOne(row, ".user-name");
+      displayName = normalizeUsername(nameElement && nameElement.textContent);
+    }
+    let username = "";
+    for (const attr of loginAttrs) {
+      username = normalizeUsername(getAttribute(row, attr));
+      if (username) break;
+    }
+    username = username || displayName || "User";
+    displayName = displayName || username;
+    const normalizedName = username.toLocaleLowerCase("en-US");
+    const key = id ? normalizedPlatform + ":id:" + id : normalizedPlatform + ":name:" + normalizedName;
+    return {
+      id,
+      username,
+      displayName,
+      normalizedName,
+      platform: normalizedPlatform,
+      key,
+      keySource: id ? "id" : "name"
+    };
+  }
+  function getNativeFirstFlag(row) {
+    if (!row) return null;
+    const attrs = [
+      "data-first-message",
+      "data-first-msg",
+      "data-is-first",
+      "data-first-time-chatter",
+      "data-new-chatter"
+    ];
+    const trueValues = ["1", "true", "yes", "sim", "first", "first-message", "new-chatter"];
+    const falseValues = ["0", "false", "no", "nao", "não"];
+    for (const attr of attrs) {
+      const token = getAttribute(row, attr).toLowerCase();
+      if (!token) continue;
+      if (trueValues.includes(token)) return true;
+      if (falseValues.includes(token)) return false;
+    }
+    const classes = getClassTokens(row);
+    if (classes.some(
+      (token) => ["new-chatter", "first-message", "first-time-chatter"].includes(token)
+    ))
+      return true;
+    return null;
+  }
+  function canonical(value) {
+    return String(value == null ? "" : value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  }
+  var EVENT_METADATA_ATTRIBUTES = Object.freeze([
+    "data-event",
+    "data-event-name",
+    "data-event-type",
+    "data-type",
+    "data-message-type",
+    "data-activity",
+    "data-alert-type",
+    "data-notification-type"
+  ]);
+  var EXPLICIT_EVENT_CLASS_PATTERN = /^(?:(?:message|banner|special)-)?(?:event|alert|notification|activity)[-_:][a-z0-9_-]+$|^[a-z0-9_-]+[-_:](?:event|alert|notification|activity)$/i;
+  function collectExplicitEventClasses(element) {
+    return getClassTokens(element).filter((token) => EXPLICIT_EVENT_CLASS_PATTERN.test(token));
+  }
+  function collectRoleMetadata(badgesEl, row) {
+    const values = [];
+    const attrs = ["data-role", "data-roles", "data-user-role", "data-badge", "data-badges"];
+    attrs.forEach((attr) => values.push(getAttribute(row, attr)));
+    values.push(getClassTokens(row).join(" "));
+    if (badgesEl) {
+      values.push(getClassTokens(badgesEl).join(" "));
+      values.push(normalizeToken(badgesEl.textContent, 1e3));
+      queryAll(
+        badgesEl,
+        "img, svg, use, [data-badge], [data-role], [aria-label], [title]"
+      ).forEach((element) => {
+        ["alt", "title", "aria-label", "src", "href", "data-badge", "data-role"].forEach(
+          (attr) => {
+            values.push(getAttribute(element, attr));
+          }
+        );
+        values.push(getClassTokens(element).join(" "));
+      });
+    }
+    return canonical(values.filter(Boolean).join(" "));
+  }
+  function getUserRoles(badgesEl, row) {
+    const source = " " + collectRoleMetadata(badgesEl, row) + " ";
+    const definitions = [
+      ["broadcaster", [" broadcaster ", " streamer ", " dono do canal ", " channel owner "]],
+      [
+        "moderator",
+        [" moderator ", " moderador ", " mod ", " role mod ", " badge mod ", " is mod "]
+      ],
+      ["vip", [" vip "]],
+      ["founder", [" founder ", " fundador "]],
+      [
+        "subscriber",
+        [" subscriber ", " subscription ", " sub ", " sub gifter ", " inscrito ", " sponsor "]
+      ],
+      ["staff", [" staff ", " admin ", " administrator "]]
+    ];
+    return definitions.filter(([, aliases]) => aliases.some((alias) => source.includes(alias))).map(([role]) => role);
+  }
+  function collectEventMetadata(row) {
+    const values = [];
+    EVENT_METADATA_ATTRIBUTES.forEach((attr) => values.push(getAttribute(row, attr)));
+    values.push(...collectExplicitEventClasses(row));
+    return " " + canonical(values.filter(Boolean).join(" ")) + " ";
+  }
+  function detectMessageEvents(row) {
+    if (!row) return [];
+    const source = collectEventMetadata(row);
+    const has = (aliases) => aliases.some((alias) => source.includes(" " + canonical(alias) + " "));
+    const events = [];
+    if (has(["superchat", "super chat", "super sticker", "supersticker"])) {
+      events.push("superchat");
+    } else if (has(["donation", "donate", "doacao", "tip", "tip alert", "tip event"])) {
+      events.push("donation");
+    }
+    if (has(["raid", "raided", "raid alert"])) events.push("raid");
+    if (has([
+      "sub",
+      "subscription",
+      "subscribed",
+      "sub event",
+      "membership",
+      "member",
+      "member event",
+      "gifted sub"
+    ]))
+      events.push("sub");
+    if (has(["follow", "followed", "follow event", "new follower"])) events.push("follow");
+    return events;
+  }
+  function getReplyInfo(row, msgText, config = CONFIG) {
+    const targetAttrs = [
+      "data-reply-parent",
+      "data-reply-parent-name",
+      "data-reply-parent-username",
+      "data-reply-parent-display-name",
+      "data-reply-parent-user-name",
+      "data-reply-to",
+      "data-reply-to-name"
+    ];
+    const idAttrs = [
+      "data-reply-parent-id",
+      "data-reply-parent-user-id",
+      "data-reply-to-id",
+      "data-reply-to-user-id",
+      "data-reply-user-id"
+    ];
+    const messageAttrs = [
+      "data-reply-parent-message",
+      "data-reply-parent-msg-body",
+      "data-reply-message"
+    ];
+    let targetId = "";
+    for (const attr of idAttrs) {
+      targetId = normalizeIdentifier(getAttribute(row, attr));
+      if (targetId) break;
+    }
+    let parentMessage = "";
+    for (const attr of messageAttrs) {
+      parentMessage = normalizeToken(getAttribute(row, attr), 280);
+      if (parentMessage) break;
+    }
+    for (const attr of targetAttrs) {
+      const target2 = normalizeUsername(getAttribute(row, attr));
+      if (target2) {
+        return {
+          target: target2,
+          targetId,
+          parentMessage,
+          fromMentionFallback: false,
+          source: attr
+        };
+      }
+    }
+    if (!config || config.REPLY_FALLBACK_FROM_LEADING_MENTION !== true) {
+      return {
+        target: "",
+        targetId,
+        parentMessage,
+        fromMentionFallback: false,
+        source: "none"
+      };
+    }
+    const match = String(msgText == null ? "" : msgText).match(
+      /^@([^\s:,.!?]{1,100})(?:\s|[:,.-])+?/u
+    );
+    const target = normalizeUsername(match && match[1]);
+    if (!target)
+      return {
+        target: "",
+        targetId,
+        parentMessage,
+        fromMentionFallback: false,
+        source: "none"
+      };
+    return {
+      target,
+      targetId,
+      parentMessage,
+      fromMentionFallback: true,
+      source: "leading-mention"
+    };
+  }
+
+  // src/storage.js
+  var LEGACY_SEEN_CACHE_KEYS = Object.freeze(["chatbox_seen_db_v3", "tw_seen_db_v2"]);
+  function report(debug, event, details = {}, error = null) {
+    if (typeof debug !== "function") return;
+    try {
+      debug(
+        Object.assign(
+          {
+            scope: "storage",
+            level: error ? "error" : "info",
+            event,
+            error
+          },
+          details
+        )
+      );
+    } catch {
+    }
+  }
+  function defaultStorage(debug) {
+    try {
+      return typeof globalThis !== "undefined" ? globalThis.localStorage : null;
+    } catch (error) {
+      report(debug, "storage-unavailable", {}, error);
+      return null;
+    }
+  }
+  function createSafeStorage(options = {}) {
+    const debug = options.debug;
+    const backend = options.storage === void 0 ? defaultStorage(debug) : options.storage;
+    let lastError = null;
+    function call(method, fallback, args) {
+      if (!backend || typeof backend[method] !== "function") {
+        lastError = new Error("Storage backend indisponivel.");
+        report(debug, "storage-unavailable", { method }, lastError);
+        return fallback;
+      }
+      try {
+        const value = backend[method].apply(backend, args);
+        lastError = null;
+        return value;
+      } catch (error) {
+        lastError = error;
+        report(debug, "storage-" + method + "-failed", { key: args[0] }, error);
+        return fallback;
+      }
+    }
+    return {
+      get(key) {
+        return call("getItem", null, [key]);
+      },
+      set(key, value) {
+        return call("setItem", false, [key, value]) !== false;
+      },
+      remove(key) {
+        return call("removeItem", false, [key]) !== false;
+      },
+      status() {
+        return { available: Boolean(backend), lastError };
+      }
+    };
+  }
+  function cleanupLegacySeenCaches(options = {}) {
+    const storage = options.safeStorage || createSafeStorage({ storage: options.storage, debug: options.debug });
+    const keys = Array.isArray(options.keys) ? options.keys : LEGACY_SEEN_CACHE_KEYS;
+    const removed = [];
+    keys.forEach((key) => {
+      if (typeof key !== "string" || !key || storage.get(key) == null) return;
+      if (storage.remove(key)) removed.push(key);
+    });
+    return { removed, storage: storage.status() };
+  }
+  function parseDatabase(raw, key, debug) {
+    if (raw == null) return { found: false, valid: false, value: null };
+    try {
+      const parsed = JSON.parse(raw);
+      if (!isPlainRecord(parsed)) throw new TypeError("O banco deve ser um objeto JSON.");
+      return { found: true, valid: true, value: parsed };
+    } catch (error) {
+      report(debug, "invalid-json", { key }, error);
+      return { found: true, valid: false, value: null };
+    }
+  }
+  function normalizeAvatarKey(rawKey, legacy = false) {
+    const token = normalizeToken(rawKey, 512);
+    if (!token) return "";
+    if (!token.includes(":")) {
+      const name = token.replace(/^@/, "").trim().toLowerCase();
+      return name ? "twitch:name:" + name : "";
+    }
+    const parts = token.split(":");
+    const platform = parts.shift().toLowerCase().replace(/[^a-z0-9_-]/g, "") || "unknown";
+    if (parts[0] === "id" && parts.length > 1) {
+      const id = parts.slice(1).join(":");
+      return id ? platform + ":id:" + id : "";
+    }
+    if (parts[0] === "name" && parts.length > 1) {
+      const name = parts.slice(1).join(":").replace(/^@/, "").trim().toLowerCase();
+      return name ? platform + ":name:" + name : "";
+    }
+    const oldName = parts.join(":").replace(/^@/, "").trim().toLowerCase();
+    return oldName ? platform + ":name:" + oldName : legacy ? "" : token;
+  }
+  function normalizeAvatarEntry(value, now, config) {
+    const source = typeof value === "string" ? { url: value, ts: now } : value;
+    if (!isPlainRecord(source)) return null;
+    const url = normalizeToken(
+      source.url || source.avatar || source.profileImageUrl,
+      config.AVATAR_MAX_URL_LENGTH
+    );
+    const ts = Number(source.ts || source.timestamp || now);
+    if (!isPublicHttpUrl(url, config.AVATAR_MAX_URL_LENGTH) || !Number.isFinite(ts) || ts <= 0)
+      return null;
+    if (ts - now > 5 * 60 * 1e3) return null;
+    if (now - ts >= config.AVATAR_EXPIRY) return null;
+    return { url, ts };
+  }
+  function sortedKeysByAge(db) {
+    return Object.keys(db).sort((left, right) => {
+      const delta = Number(db[left].ts || 0) - Number(db[right].ts || 0);
+      return delta || left.localeCompare(right);
+    });
+  }
+  function createAvatarStore(options = {}) {
+    const config = Object.assign({}, CONFIG, options.config || {});
+    const debug = options.debug;
+    const storage = createSafeStorage({ storage: options.storage, debug });
+    const now = typeof options.now === "function" ? options.now : Date.now;
+    const setTimer = typeof options.setTimer === "function" ? options.setTimer : setTimeout;
+    const clearTimer = typeof options.clearTimer === "function" ? options.clearTimer : clearTimeout;
+    let db = /* @__PURE__ */ Object.create(null);
+    let timer = null;
+    let dirty = false;
+    let migratedFrom = null;
+    let hadStorage = false;
+    let lastSavedAt = null;
+    const primary = parseDatabase(
+      storage.get(config.AVATAR_CACHE_KEY),
+      config.AVATAR_CACHE_KEY,
+      debug
+    );
+    let loaded = primary.valid ? primary.value : null;
+    hadStorage = primary.found;
+    if (!loaded) {
+      for (const legacyKey of config.AVATAR_LEGACY_KEYS || []) {
+        const legacy = parseDatabase(storage.get(legacyKey), legacyKey, debug);
+        hadStorage = hadStorage || legacy.found;
+        if (!legacy.valid) continue;
+        loaded = legacy.value;
+        migratedFrom = legacyKey;
+        break;
+      }
+    }
+    const loadedEntries = loaded || {};
+    const initialNow = now();
+    let normalizedCount = 0;
+    Object.entries(loadedEntries).forEach(([rawKey, rawValue]) => {
+      const key = normalizeAvatarKey(rawKey, Boolean(migratedFrom));
+      const entry = normalizeAvatarEntry(rawValue, initialNow, config);
+      if (!key || !entry) return;
+      const current = db[key];
+      if (!current || entry.ts > current.ts) db[key] = entry;
+      normalizedCount += 1;
+    });
+    function prune(referenceNow = now()) {
+      let removedExpired = 0;
+      let removedOverflow = 0;
+      Object.keys(db).forEach((key) => {
+        const entry = db[key];
+        if (!entry || !Number.isFinite(entry.ts) || referenceNow - entry.ts >= config.AVATAR_EXPIRY) {
+          delete db[key];
+          removedExpired += 1;
+        }
+      });
+      const keys = sortedKeysByAge(db);
+      const overflow = Math.max(0, keys.length - config.MAX_AVATAR_DB_SIZE);
+      for (let index = 0; index < overflow; index += 1) {
+        delete db[keys[index]];
+        removedOverflow += 1;
+      }
+      if (removedExpired || removedOverflow) dirty = true;
+      return { removedExpired, removedOverflow, size: Object.keys(db).length };
+    }
+    const initialCleanup = prune(initialNow);
+    if (migratedFrom || !primary.valid && primary.found || normalizedCount !== Object.keys(loadedEntries).length || initialCleanup.removedExpired || initialCleanup.removedOverflow || Object.keys(db).some((key) => !Object.prototype.hasOwnProperty.call(loadedEntries, key))) {
+      dirty = true;
+    }
+    function flush() {
+      if (timer != null) {
+        clearTimer(timer);
+        timer = null;
+      }
+      if (!dirty) return true;
+      const saved = storage.set(config.AVATAR_CACHE_KEY, JSON.stringify(db));
+      if (saved) {
+        dirty = false;
+        lastSavedAt = now();
+        report(debug, "avatar-cache-saved", { size: Object.keys(db).length });
+      }
+      return saved;
+    }
+    function schedule() {
+      if (config.AVATAR_SAVE_DEBOUNCE <= 0) return flush();
+      if (timer != null) clearTimer(timer);
+      timer = setTimer(() => {
+        timer = null;
+        flush();
+      }, config.AVATAR_SAVE_DEBOUNCE);
+      return true;
+    }
+    if (dirty) flush();
+    return {
+      get(rawKey) {
+        const key = normalizeAvatarKey(rawKey);
+        const entry = key && db[key];
+        if (!entry) return null;
+        if (now() - entry.ts >= config.AVATAR_EXPIRY) {
+          delete db[key];
+          dirty = true;
+          schedule();
+          return null;
+        }
+        return entry.url;
+      },
+      set(rawKey, rawUrl, timestamp = now()) {
+        const key = normalizeAvatarKey(rawKey);
+        const entry = normalizeAvatarEntry({ url: rawUrl, ts: timestamp }, now(), config);
+        if (!key || !entry) {
+          report(debug, "avatar-cache-rejected", { key: rawKey });
+          return false;
+        }
+        const current = db[key];
+        if (current && current.url === entry.url && entry.ts - current.ts < 6 * 60 * 60 * 1e3)
+          return true;
+        db[key] = entry;
+        dirty = true;
+        prune(now());
+        schedule();
+        return true;
+      },
+      delete(rawKey) {
+        const key = normalizeAvatarKey(rawKey);
+        if (!key || !db[key]) return false;
+        delete db[key];
+        dirty = true;
+        schedule();
+        return true;
+      },
+      cleanup() {
+        const result = prune(now());
+        if (dirty) schedule();
+        return result;
+      },
+      flush,
+      dispose() {
+        return flush();
+      },
+      snapshot() {
+        return Object.fromEntries(
+          Object.entries(db).map(([key, entry]) => [key, Object.assign({}, entry)])
+        );
+      },
+      status() {
+        return {
+          size: Object.keys(db).length,
+          hadStorage,
+          migratedFrom,
+          dirty,
+          lastSavedAt,
+          storage: storage.status()
+        };
+      }
+    };
+  }
+
+  // src/render.js
+  var TRANSPARENT_PIXEL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+  var PLATFORM_LABELS = Object.freeze({
+    twitch: "TW",
+    youtube: "YT",
+    kick: "K"
+  });
+  var ROLE_LABELS = Object.freeze({
+    broadcaster: "LIVE",
+    moderator: "MOD",
+    vip: "VIP",
+    founder: "1ST",
+    subscriber: "SUB",
+    staff: "STAFF"
+  });
+  var EVENT_LABELS = Object.freeze({
+    superchat: "Super Chat",
+    donation: "Doação",
+    raid: "Raid",
+    sub: "Sub/Membro",
+    follow: "Follow"
+  });
+  var STREAMLABS_METADATA_CACHE_LIMIT = 500;
+  var STREAMLABS_CHAT_COMMANDS = Object.freeze([
+    "CHAT",
+    "CHAT.MESSAGE.SENT",
+    "PRIVMSG",
+    "YOUTUBE#LIVECHATMESSAGE"
+  ]);
+  var OBSERVED_METADATA_ATTRIBUTES = Object.freeze([
+    "data-platform",
+    "data-provider",
+    "data-service",
+    "data-site",
+    "data-message-source",
+    "data-source",
+    "data-from",
+    "data-username",
+    "data-display-name",
+    "data-user-id",
+    "data-userid",
+    "data-author-id",
+    "data-sender-id",
+    "data-from-id",
+    "data-user-uuid",
+    "data-avatar",
+    "data-first-message",
+    "data-first-msg",
+    "data-is-first",
+    "data-first-time-chatter",
+    "data-new-chatter",
+    "data-reply-parent",
+    "data-reply-parent-name",
+    "data-reply-parent-username",
+    "data-reply-parent-display-name",
+    "data-reply-parent-user-name",
+    "data-reply-parent-id",
+    "data-reply-parent-user-id",
+    "data-reply-parent-message",
+    "data-reply-parent-msg-body",
+    "data-reply-parent-message-id",
+    "data-reply-to",
+    "data-reply-to-name",
+    "data-reply-to-id",
+    "data-reply-to-user-id",
+    "data-reply-user-id",
+    "data-event",
+    "data-event-name",
+    "data-event-type",
+    "data-type",
+    "data-message-type",
+    "data-activity",
+    "data-alert-type",
+    "data-notification-type"
+  ]);
+  function isRecord2(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  }
+  function safePrimitive(value, maxLength = 512) {
+    if (!["string", "number", "boolean"].includes(typeof value)) return "";
+    return normalizeToken(value, maxLength);
+  }
+  function firstSafe(values, maxLength = 512) {
+    for (const value of values) {
+      const token = safePrimitive(value, maxLength);
+      if (token) return token;
+    }
+    return "";
+  }
+  function extractStreamlabsMetadata(event) {
+    const outer = isRecord2(event && event.detail) ? event.detail : null;
+    if (!outer) return null;
+    const payload = isRecord2(outer.event) ? outer.event : outer;
+    const records = [];
+    const queue = [outer];
+    while (queue.length && records.length < 12) {
+      const record = queue.shift();
+      if (!isRecord2(record) || records.includes(record)) continue;
+      records.push(record);
+      ["event", "data", "payload"].forEach((key) => {
+        if (isRecord2(record[key])) queue.push(record[key]);
+      });
+    }
+    const collect = (...keys) => {
+      const values = [];
+      records.forEach((record) => keys.forEach((key) => values.push(record[key])));
+      return values;
+    };
+    const firstRecord = (...keys) => {
+      for (const record of records) {
+        for (const key of keys) {
+          if (isRecord2(record[key])) return record[key];
+        }
+      }
+      return {};
+    };
+    const tags = firstRecord("tags");
+    const author = firstRecord("authorDetails", "author");
+    const sender = firstRecord("sender");
+    const user = firstRecord("user");
+    const reply = firstRecord("replies_to", "repliesTo", "reply_to", "replyTo", "reply");
+    const replySender = isRecord2(reply.sender) ? reply.sender : {};
+    const command = firstSafe(
+      [...collect("command"), ...collect("kind"), ...collect("type")],
+      50
+    ).toUpperCase();
+    if (!STREAMLABS_CHAT_COMMANDS.includes(command)) return null;
+    const commandPlatform = command === "PRIVMSG" ? "twitch" : command === "YOUTUBE#LIVECHATMESSAGE" ? "youtube" : command === "CHAT.MESSAGE.SENT" ? "kick" : "";
+    const messageId = firstSafe(
+      [
+        ...collect("messageId", "message_id", "msgId", "id", "_id"),
+        payload.messageId,
+        payload.message_id,
+        payload.id,
+        payload._id,
+        outer.messageId,
+        outer.message_id,
+        outer.id,
+        outer._id,
+        tags.id,
+        tags["message-id"]
+      ],
+      256
+    );
+    if (!messageId) return null;
+    const attributes = /* @__PURE__ */ Object.create(null);
+    const set = (name, values, maxLength) => {
+      const value = firstSafe(values, maxLength);
+      if (value) attributes[name] = value;
+    };
+    set(
+      "data-platform",
+      [
+        ...collect("platform", "source", "provider", "service", "site"),
+        payload.platform,
+        outer.platform,
+        tags.platform,
+        payload.source,
+        payload.provider,
+        payload.service,
+        payload.site,
+        outer.source,
+        outer.provider,
+        outer.service,
+        outer.site,
+        commandPlatform
+      ],
+      100
+    );
+    set(
+      "data-from",
+      [
+        tags["display-name"],
+        author.displayName,
+        author.channelTitle,
+        sender.username,
+        sender.name,
+        user.displayName,
+        user.username,
+        user.name,
+        user.login,
+        ...collect("displayName", "from", "username", "nick"),
+        payload.displayName,
+        payload.from,
+        payload.username,
+        outer.displayName,
+        outer.from,
+        outer.username
+      ],
+      100
+    );
+    set(
+      "data-username",
+      [
+        payload.from,
+        sender.username,
+        sender.login,
+        user.username,
+        user.login,
+        ...collect("login", "username", "from", "nick")
+      ],
+      100
+    );
+    set(
+      "data-user-id",
+      [
+        tags["user-id"],
+        author.channelId,
+        author.id,
+        sender.user_id,
+        sender.userId,
+        sender.id,
+        user.user_id,
+        user.userId,
+        user.id,
+        ...collect("userId", "user_id", "senderId", "fromId"),
+        payload.userId,
+        payload.user_id,
+        payload.senderId,
+        payload.fromId,
+        outer.userId,
+        outer.senderId
+      ],
+      256
+    );
+    const avatar = firstSafe(
+      [
+        tags.profileImageUrl,
+        tags["profile-image-url"],
+        author.profileImageUrl,
+        author.profile_image_url,
+        sender.profile_picture,
+        sender.profilePicture,
+        sender.avatar,
+        user.profile_pic,
+        user.profilePicture,
+        user.avatar,
+        ...collect(
+          "profileImageUrl",
+          "profile_image_url",
+          "profile_picture",
+          "profilePicture",
+          "profile_pic",
+          "avatar"
+        ),
+        payload.profileImageUrl,
+        payload.avatar,
+        outer.profileImageUrl
+      ],
+      4096
+    );
+    if (avatar && isPublicHttpUrl(avatar, 4096)) attributes["data-avatar"] = avatar;
+    set(
+      "data-first-message",
+      [
+        tags["first-msg"],
+        ...collect("isFirstMessage", "first_msg", "is_first_message"),
+        payload.isFirstMessage,
+        payload.first_msg,
+        outer.isFirstMessage
+      ],
+      32
+    );
+    set(
+      "data-reply-parent",
+      [
+        tags["reply-parent-display-name"],
+        tags["reply-parent-user-login"],
+        replySender.displayName,
+        replySender.username,
+        replySender.name,
+        reply.displayName,
+        reply.username,
+        ...collect(
+          "replyParentDisplayName",
+          "replyParentUserName",
+          "replyParentUsername",
+          "replyTo",
+          "replyToName"
+        ),
+        payload.replyParentDisplayName,
+        payload.replyParentUserName,
+        payload.replyTo
+      ],
+      100
+    );
+    set(
+      "data-reply-parent-user-id",
+      [
+        tags["reply-parent-user-id"],
+        replySender.user_id,
+        replySender.userId,
+        replySender.id,
+        ...collect("replyParentUserId", "replyToUserId"),
+        payload.replyParentUserId,
+        payload.replyToUserId
+      ],
+      256
+    );
+    set(
+      "data-reply-parent-message",
+      [
+        tags["reply-parent-msg-body"],
+        reply.content,
+        reply.message,
+        reply.body,
+        ...collect("replyParentMessage", "replyParentMessageBody")
+      ],
+      280
+    );
+    set(
+      "data-reply-parent-message-id",
+      [
+        tags["reply-parent-msg-id"],
+        reply.message_id,
+        reply.messageId,
+        reply.id,
+        ...collect("replyParentMessageId")
+      ],
+      256
+    );
+    set(
+      "data-event",
+      [
+        payload.eventName,
+        payload.eventType,
+        payload.type,
+        outer.eventName,
+        outer.eventType,
+        outer.type
+      ],
+      100
+    );
+    return { messageId, attributes };
+  }
+  function createReporter(config, callback, consoleObject) {
+    if (typeof callback === "function") return callback;
+    if (!config.DEBUG) return null;
+    return (entry) => {
+      const method = entry && entry.level === "error" ? "error" : "warn";
+      const target = consoleObject && consoleObject[method];
+      if (typeof target === "function") target.call(consoleObject, "[PersonChat]", entry);
+    };
+  }
+  function report2(debug, event, details = {}, error = null) {
+    if (typeof debug !== "function") return;
+    try {
+      debug({
+        scope: "render",
+        level: error ? "error" : "info",
+        event,
+        error,
+        ...details
+      });
+    } catch {
+    }
+  }
+  function nowTime(now) {
+    return new Date(now()).toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+  function generateInitialsAvatar(username, color) {
+    const cleanName = normalizeToken(username, 100) || "User";
+    const initials = escapeXml(cleanName.substring(0, 2).toUpperCase());
+    const background = isUsableColor(color) ? normalizeToken(color, 80) : "#2a2a2a";
+    const svg = [
+      '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">',
+      '<circle cx="32" cy="32" r="32" fill="' + escapeXml(background) + '" />',
+      '<text x="50%" y="54%" font-family="Montserrat, sans-serif" font-weight="bold"',
+      ' font-size="24" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">',
+      initials,
+      "</text></svg>"
+    ].join("");
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+  }
+  function isAllowedPlatform(platform, mode) {
+    if (mode === "twitch-only") return platform === "twitch";
+    if (mode === "non-twitch") return platform === "youtube" || platform === "kick";
+    return true;
+  }
+  function cleanUrlCandidate(value) {
+    return String(value || "").replace(/[),.!?\]]+$/g, "");
+  }
+  function hostMatchesAllowlist(hostname, allowlist) {
+    const host = hostname.toLowerCase().replace(/\.$/, "");
+    return allowlist.some((allowed) => host === allowed || host.endsWith("." + allowed));
+  }
+  function isAllowedEmbeddedImageUrl(value, config = CONFIG) {
+    if (!config.EMBED_IMAGES || !Array.isArray(config.IMAGE_ALLOWED_HOSTS)) return false;
+    if (!config.IMAGE_ALLOWED_HOSTS.length) return false;
+    if (!isPublicHttpUrl(value, config.IMAGE_MAX_URL_LENGTH)) return false;
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "https:") return false;
+      if (!hostMatchesAllowlist(url.hostname, config.IMAGE_ALLOWED_HOSTS)) return false;
+      return /\.(?:png|jpe?g|gif|webp)$/i.test(url.pathname);
+    } catch {
+      return false;
+    }
+  }
+  function removeReplyMentionFromMessage(messageElement, replyTarget) {
+    if (!messageElement || !replyTarget) return false;
+    const target = String(replyTarget).replace(/^@/, "");
+    const pattern = new RegExp("^@" + escapeRegExp(target) + "[\\s:,-]+", "i");
+    const match = String(messageElement.textContent || "").match(pattern);
+    if (!match) return false;
+    const documentRef = messageElement.ownerDocument;
+    const nodeFilter = documentRef.defaultView && documentRef.defaultView.NodeFilter;
+    const walker = documentRef.createTreeWalker(
+      messageElement,
+      nodeFilter ? nodeFilter.SHOW_TEXT : 4
+    );
+    const nodes = [];
+    let current = walker.nextNode();
+    while (current) {
+      nodes.push(current);
+      current = walker.nextNode();
+    }
+    let remaining = match[0].length;
+    for (const node of nodes) {
+      if (remaining <= 0) break;
+      const length = node.data.length;
+      if (length <= remaining) {
+        node.data = "";
+        remaining -= length;
+      } else {
+        node.deleteData(0, remaining);
+        remaining = 0;
+      }
+    }
+    return remaining === 0;
+  }
+  function keepIconBadgesOnly(badgesElement) {
+    if (!badgesElement) return;
+    const view = badgesElement.ownerDocument.defaultView;
+    const textNode = view ? view.Node.TEXT_NODE : 3;
+    const elementNode = view ? view.Node.ELEMENT_NODE : 1;
+    Array.from(badgesElement.childNodes).forEach((node) => {
+      if (node.nodeType === textNode) {
+        if (node.textContent.trim()) node.remove();
+        return;
+      }
+      if (node.nodeType !== elementNode) return;
+      const tag = node.tagName.toLowerCase();
+      const className = String(node.className || "").toLowerCase();
+      const inlineStyle = String(node.getAttribute("style") || "").toLowerCase();
+      const hasIcon = tag === "img" || tag === "svg" || Boolean(node.querySelector("img, svg")) || className.split(/\s+/).some((token) => token === "badge" || token.endsWith("-badge")) || /background(?:-image)?\s*:/.test(inlineStyle) || Boolean(node.getAttribute("data-badge"));
+      if (!hasIcon) node.remove();
+    });
+  }
+  function addPlatformBadge(row, platform, config) {
+    const header = row.querySelector(".message-header");
+    if (!header) return;
+    const current = header.querySelector("[data-personchat-platform-badge]");
+    if (!config.SHOW_PLATFORM_BADGE || platform === "unknown") {
+      if (current) current.remove();
+      return;
+    }
+    if (current && current.dataset.platform === platform) return;
+    if (current) current.remove();
+    const badge = row.ownerDocument.createElement("span");
+    badge.className = "platform-badge platform-badge-" + platform;
+    badge.dataset.personchatPlatformBadge = "1";
+    badge.dataset.platform = platform;
+    badge.textContent = PLATFORM_LABELS[platform] || platform.substring(0, 2).toUpperCase();
+    badge.setAttribute("aria-label", "Plataforma " + platform);
+    const badges = header.querySelector(".badges");
+    header.insertBefore(badge, badges || header.firstChild);
+  }
+  function addRolePills(row, roles, config) {
+    const header = row.querySelector(".message-header");
+    if (!header) return;
+    const expectedRoles = config.SHOW_ROLE_PILLS ? roles.slice(0, 2) : [];
+    const currentRoles = Array.from(
+      header.querySelectorAll("[data-personchat-role-pill]"),
+      (pill) => pill.dataset.role
+    );
+    if (currentRoles.length === expectedRoles.length && currentRoles.every((role, index) => role === expectedRoles[index]))
+      return;
+    header.querySelectorAll("[data-personchat-role-pill]").forEach((pill) => pill.remove());
+    expectedRoles.forEach((role) => {
+      const pill = row.ownerDocument.createElement("span");
+      pill.className = "role-pill role-pill-" + role;
+      pill.dataset.personchatRolePill = "1";
+      pill.dataset.role = role;
+      pill.textContent = ROLE_LABELS[role] || role.toUpperCase();
+      header.appendChild(pill);
+    });
+  }
+  function addEventBanner(row, events, config) {
+    const decorators = row.querySelector(".message-decorators");
+    if (!decorators) return;
+    const eventName = config.SHOW_EVENT_BANNERS ? events[0] || "" : "";
+    const current = decorators.querySelector("[data-personchat-event-banner]");
+    if (current && current.dataset.event === eventName) return;
+    if (current) current.remove();
+    Object.keys(EVENT_LABELS).forEach((event) => row.classList.remove("event-" + event));
+    if (!eventName) return;
+    row.classList.add("event-" + eventName);
+    const banner = row.ownerDocument.createElement("div");
+    banner.className = "special-banner banner-event banner-event-" + eventName;
+    banner.dataset.personchatEventBanner = "1";
+    banner.dataset.event = eventName;
+    banner.textContent = EVENT_LABELS[eventName] || eventName;
+    decorators.appendChild(banner);
+  }
+  function addFirstMessageBanner(row, kind) {
+    const decorators = row.querySelector(".message-decorators");
+    if (!decorators) return;
+    const isNative = kind === "native";
+    if (isNative && row.querySelector('[data-personchat-first-kind="native"]')) return;
+    if (!isNative && row.querySelector('[data-personchat-first-kind="session"]')) return;
+    if (isNative) {
+      row.classList.remove("msg-session-first");
+      row.querySelector('[data-personchat-first-kind="session"]')?.remove();
+    }
+    row.classList.add(isNative ? "msg-first-message" : "msg-session-first");
+    const banner = row.ownerDocument.createElement("div");
+    banner.dataset.personchatFirstKind = isNative ? "native" : "session";
+    banner.className = isNative ? "special-banner banner-first" : "special-banner banner-session-first";
+    banner.textContent = isNative ? "Primeira vez no chat!" : "Primeira mensagem da sessão!";
+    decorators.appendChild(banner);
+  }
+  function addReplyPill(row, reply) {
+    const headerRow = row.querySelector(".message-header-row");
+    if (!headerRow) return;
+    const replyTarget = reply.target;
+    const parentMessage = reply.parentMessage || "";
+    const current = headerRow.querySelector("[data-personchat-reply-pill]");
+    if (current && current.dataset.replyTarget === replyTarget && current.dataset.replyMessage === parentMessage)
+      return;
+    if (current) current.remove();
+    row.classList.add("msg-reply");
+    const pill = row.ownerDocument.createElement("div");
+    pill.className = "reply-pill";
+    pill.dataset.personchatReplyPill = "1";
+    pill.dataset.replyTarget = replyTarget;
+    pill.dataset.replyMessage = parentMessage;
+    pill.setAttribute("aria-label", "Em resposta a " + replyTarget);
+    const icon = row.ownerDocument.createElement("span");
+    icon.className = "reply-icon";
+    icon.textContent = "↩";
+    icon.setAttribute("aria-hidden", "true");
+    const label = row.ownerDocument.createElement("span");
+    label.className = "reply-label";
+    label.textContent = "Em resposta a";
+    const name = row.ownerDocument.createElement("span");
+    name.className = "reply-name";
+    name.textContent = "@" + replyTarget.replace(/^@/, "");
+    pill.append(icon, label, name);
+    if (parentMessage) {
+      const excerpt = row.ownerDocument.createElement("span");
+      excerpt.className = "reply-message";
+      excerpt.textContent = parentMessage;
+      excerpt.title = parentMessage;
+      pill.appendChild(excerpt);
+    }
+    headerRow.appendChild(pill);
+  }
+  function extractImageUrls(messageElement, config) {
+    if (!config.EMBED_IMAGES || !messageElement) return [];
+    const candidates = String(messageElement.textContent || "").match(/https?:\/\/[^\s<>"']+/gi);
+    if (!candidates) return [];
+    return Array.from(
+      new Set(
+        candidates.map(cleanUrlCandidate).filter((url) => isAllowedEmbeddedImageUrl(url, config))
+      )
+    ).slice(0, config.MAX_EMBEDDED_IMAGES_PER_MESSAGE);
+  }
+  function embedImages(row, config, timers) {
+    const messageElement = row.querySelector(".user-message");
+    if (!messageElement || messageElement.querySelector(".embedded-image-container")) return;
+    const urls = extractImageUrls(messageElement, config);
+    if (!urls.length) return;
+    const container = row.ownerDocument.createElement("div");
+    container.className = "embedded-image-container";
+    urls.forEach((url) => {
+      const image = row.ownerDocument.createElement("img");
+      image.className = "chat-embedded-image";
+      image.alt = "Imagem compartilhada no chat";
+      image.loading = "lazy";
+      image.decoding = "async";
+      image.referrerPolicy = "no-referrer";
+      const timeout = timers.set(() => {
+        image.removeAttribute("src");
+        image.remove();
+        if (!container.children.length) container.remove();
+      }, config.IMAGE_LOAD_TIMEOUT);
+      image.addEventListener("load", () => timers.clear(timeout), { once: true });
+      image.addEventListener(
+        "error",
+        () => {
+          timers.clear(timeout);
+          image.remove();
+          if (!container.children.length) container.remove();
+        },
+        { once: true }
+      );
+      image.src = url;
+      container.appendChild(image);
+    });
+    messageElement.appendChild(container);
+  }
+  function fetchJsonWithTimeout(url, options) {
+    const controller = typeof options.AbortControllerCtor === "function" ? new options.AbortControllerCtor() : null;
+    return new Promise((resolve) => {
+      let settled = false;
+      let timeout = null;
+      const cancel = () => {
+        if (controller) controller.abort();
+        finish(null);
+      };
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        options.timers.clear(timeout);
+        if (options.cancellations) options.cancellations.delete(cancel);
+        resolve(value);
+      };
+      if (options.cancellations) options.cancellations.add(cancel);
+      timeout = options.timers.set(() => {
+        if (controller) controller.abort();
+        finish(null);
+      }, options.timeout);
+      Promise.resolve().then(
+        () => options.fetchImpl(url, {
+          signal: controller ? controller.signal : void 0,
+          credentials: "omit",
+          referrerPolicy: "no-referrer"
+        })
+      ).then((response) => response && response.ok ? response.json() : null).then(finish).catch(() => finish(null));
+    });
+  }
+  function extractAvatarUrl(data, platform) {
+    if (!data) return "";
+    if (platform === "twitch") {
+      if (Array.isArray(data)) return normalizeToken(data[0] && data[0].logo, 4096);
+      return normalizeToken(data.logo, 4096);
+    }
+    return normalizeToken(
+      data.user && data.user.profile_pic || data.profile_pic || data.profilePicture,
+      4096
+    );
+  }
+  function getRawAvatar(row, config) {
+    const avatar = row.querySelector(".avatar");
+    const candidates = [
+      avatar && avatar.getAttribute("data-avatar"),
+      row.getAttribute("data-avatar"),
+      avatar && avatar.getAttribute("src")
+    ];
+    return candidates.map((value) => normalizeToken(value, config.AVATAR_MAX_URL_LENGTH)).find(
+      (value) => value && value !== TRANSPARENT_PIXEL && !/default|blank/i.test(value) && isPublicHttpUrl(value, config.AVATAR_MAX_URL_LENGTH)
+    ) || "";
+  }
+  function rowIsReady(row) {
+    if (!row || row.dataset.processed === "1") return false;
+    const message = row.querySelector(".user-message");
+    if (!message || /^\s*\{message\}\s*$/.test(message.innerHTML)) return false;
+    const rawNames = [
+      row.getAttribute("data-from"),
+      row.getAttribute("data-username"),
+      row.getAttribute("data-display-name"),
+      row.querySelector(".user-name")?.textContent
+    ];
+    return rawNames.some((value) => Boolean(normalizeToken(value, 100)));
+  }
+  function createChatOverlay(options = {}) {
+    const documentRef = options.document || globalThis.document;
+    const windowRef = options.window || documentRef && documentRef.defaultView || globalThis;
+    const rawConfig = options.config === void 0 ? CONFIG : options.config;
+    const config = normalizeConfig(rawConfig, { debug: options.debug });
+    const debug = createReporter(config, options.debug, options.console || globalThis.console);
+    cleanupLegacySeenCaches({ storage: options.storage, debug });
+    const now = typeof options.now === "function" ? options.now : Date.now;
+    const setTimer = typeof options.setTimeout === "function" ? options.setTimeout : windowRef.setTimeout.bind(windowRef);
+    const clearTimer = typeof options.clearTimeout === "function" ? options.clearTimeout : windowRef.clearTimeout.bind(windowRef);
+    const queueTask = typeof options.queueMicrotask === "function" ? options.queueMicrotask : (callback) => Promise.resolve().then(callback);
+    const auxiliaryTimers = /* @__PURE__ */ new Set();
+    const timers = {
+      set(callback, delay) {
+        let timer = null;
+        timer = setTimer(() => {
+          auxiliaryTimers.delete(timer);
+          callback();
+        }, delay);
+        auxiliaryTimers.add(timer);
+        return timer;
+      },
+      clear(timer) {
+        if (timer == null) return;
+        auxiliaryTimers.delete(timer);
+        clearTimer(timer);
+      }
+    };
+    const fetchImpl = typeof options.fetch === "function" ? options.fetch : typeof windowRef.fetch === "function" ? windowRef.fetch.bind(windowRef) : null;
+    const ImageCtor = options.Image || windowRef.Image;
+    const AbortControllerCtor = options.AbortController || windowRef.AbortController;
+    const avatarStore = createAvatarStore({
+      config,
+      debug,
+      storage: options.storage,
+      now,
+      setTimer,
+      clearTimer
+    });
+    let log = null;
+    let observer = null;
+    let radarTimer = null;
+    let radarReady = config.FIRST_MESSAGE_WARMUP === 0;
+    let lastVisibleMessage = null;
+    let started = false;
+    let destroyed = false;
+    let lifecycleVersion = 0;
+    let activeAvatarFetches = 0;
+    const sessionSeen = /* @__PURE__ */ new Set();
+    const queuedRows = /* @__PURE__ */ new WeakSet();
+    const queuedRefreshRows = /* @__PURE__ */ new WeakSet();
+    const rowStates = /* @__PURE__ */ new WeakMap();
+    const pendingAvatarFetches = /* @__PURE__ */ new Map();
+    const negativeAvatarFetches = /* @__PURE__ */ new Map();
+    const avatarFetchQueue = [];
+    const avatarFetchCancellations = /* @__PURE__ */ new Set();
+    const avatarPreloads = /* @__PURE__ */ new Set();
+    const pendingStreamlabsMetadata = /* @__PURE__ */ new Map();
+    const hideTimers = /* @__PURE__ */ new Map();
+    function applySettings() {
+      Array.from(log.classList).filter((token) => token.startsWith("theme-")).forEach((token) => log.classList.remove(token));
+      log.classList.add("theme-" + config.THEME);
+      log.style.setProperty("--message-line-length", config.MESSAGE_LINE_LENGTH);
+      log.classList.toggle("show-platform-badges", config.SHOW_PLATFORM_BADGE);
+      log.classList.toggle("show-role-pills", config.SHOW_ROLE_PILLS);
+      log.classList.toggle("show-event-banners", config.SHOW_EVENT_BANNERS);
+      log.classList.toggle("compact-repeat-enabled", config.HIDE_REPEATED_AVATAR_AND_NAME);
+    }
+    function clearRowTimer(row) {
+      const timer = hideTimers.get(row);
+      if (timer != null) {
+        clearTimer(timer);
+        hideTimers.delete(row);
+      }
+    }
+    function removeWithFade(row) {
+      if (!row) return;
+      clearRowTimer(row);
+      if (lastVisibleMessage && lastVisibleMessage.row === row) lastVisibleMessage = null;
+      if (!documentRef.documentElement.contains(row)) return;
+      row.classList.add("fadeOutUp");
+      const timer = setTimer(() => {
+        hideTimers.delete(row);
+        row.remove();
+      }, 500);
+      hideTimers.set(row, timer);
+    }
+    function trimMessages() {
+      const rows = Array.from(log.querySelectorAll(".message-row:not(.fadeOutUp):not(.deleted)"));
+      const extra = rows.length - config.MAX_MESSAGES;
+      for (let index = 0; index < extra; index += 1) removeWithFade(rows[index]);
+    }
+    function applyMessageChain(row, userKey, hasSpecialState) {
+      const previousIsVisible = lastVisibleMessage && lastVisibleMessage.userKey === userKey && now() - lastVisibleMessage.timestamp <= config.REPEATED_MESSAGE_WINDOW && documentRef.documentElement.contains(lastVisibleMessage.row) && !lastVisibleMessage.row.classList.contains("fadeOutUp") && !lastVisibleMessage.row.classList.contains("deleted") && !lastVisibleMessage.row.hidden && !lastVisibleMessage.row.classList.contains("personchat-platform-filtered");
+      if (config.HIDE_REPEATED_AVATAR_AND_NAME && !hasSpecialState && previousIsVisible) {
+        row.classList.add("msg-compact-chain");
+      }
+      if (!row.hidden && !row.classList.contains("personchat-platform-filtered")) {
+        lastVisibleMessage = { row, userKey, timestamp: now() };
+      }
+    }
+    function preloadAvatar(avatarElement, url, fallback, userKey, version = lifecycleVersion) {
+      if (destroyed || version !== lifecycleVersion) return;
+      if (!url || typeof ImageCtor !== "function") {
+        avatarElement.src = url || fallback;
+        return;
+      }
+      const image = new ImageCtor();
+      const preload = { image, timeout: null };
+      avatarPreloads.add(preload);
+      const timeout = timers.set(() => {
+        avatarPreloads.delete(preload);
+        image.onload = null;
+        image.onerror = null;
+        image.src = "";
+        if (destroyed || version !== lifecycleVersion) return;
+        avatarStore.delete(userKey);
+        if (documentRef.documentElement.contains(avatarElement)) {
+          avatarElement.src = fallback;
+        }
+      }, config.AVATAR_FETCH_TIMEOUT);
+      preload.timeout = timeout;
+      image.onload = () => {
+        avatarPreloads.delete(preload);
+        timers.clear(timeout);
+        if (!destroyed && version === lifecycleVersion && documentRef.documentElement.contains(avatarElement))
+          avatarElement.src = url;
+      };
+      image.onerror = () => {
+        avatarPreloads.delete(preload);
+        timers.clear(timeout);
+        if (destroyed || version !== lifecycleVersion) return;
+        avatarStore.delete(userKey);
+        if (documentRef.documentElement.contains(avatarElement)) {
+          avatarElement.src = fallback;
+        }
+      };
+      image.src = url;
+    }
+    function pumpAvatarFetchQueue() {
+      while (!destroyed && activeAvatarFetches < config.MAX_CONCURRENT_AVATAR_FETCHES && avatarFetchQueue.length) {
+        const entry = avatarFetchQueue.shift();
+        if (entry.version !== lifecycleVersion) {
+          entry.resolve(null);
+          continue;
+        }
+        if (typeof entry.isRelevant === "function" && !entry.isRelevant()) {
+          entry.resolve(null);
+          continue;
+        }
+        activeAvatarFetches += 1;
+        Promise.resolve().then(entry.task).catch(() => null).then(entry.resolve).finally(() => {
+          activeAvatarFetches -= 1;
+          pumpAvatarFetchQueue();
+        });
+      }
+    }
+    function enqueueAvatarFetch(task, version, isRelevant) {
+      return new Promise((resolve) => {
+        if (destroyed || version !== lifecycleVersion) {
+          resolve(null);
+          return;
+        }
+        if (avatarFetchQueue.length >= config.MAX_QUEUED_AVATAR_FETCHES) {
+          resolve(null);
+          return;
+        }
+        avatarFetchQueue.push({ task, resolve, version, isRelevant });
+        pumpAvatarFetchQueue();
+      });
+    }
+    function requestPlatformAvatar(identity, row) {
+      if (!fetchImpl || destroyed) return Promise.resolve("");
+      const canFetchTwitch = identity.platform === "twitch" || identity.platform === "unknown" && config.FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN;
+      if (identity.platform !== "kick" && !canFetchTwitch) return Promise.resolve("");
+      if (identity.platform === "kick" && !config.FETCH_KICK_AVATAR) {
+        return Promise.resolve("");
+      }
+      if ((negativeAvatarFetches.get(identity.key) || 0) > now()) return Promise.resolve("");
+      if (pendingAvatarFetches.has(identity.key)) {
+        return pendingAvatarFetches.get(identity.key);
+      }
+      const version = lifecycleVersion;
+      const platform = identity.platform === "kick" ? "kick" : "twitch";
+      const url = platform === "kick" ? "https://kick.com/api/v2/channels/" + encodeURIComponent(identity.normalizedName) : "https://api.ivr.fi/v2/twitch/user?login=" + encodeURIComponent(identity.normalizedName);
+      const request = enqueueAvatarFetch(
+        () => fetchJsonWithTimeout(url, {
+          fetchImpl,
+          timeout: config.AVATAR_FETCH_TIMEOUT,
+          AbortControllerCtor,
+          timers,
+          cancellations: avatarFetchCancellations
+        }),
+        version,
+        () => documentRef.documentElement.contains(row)
+      ).then((data) => {
+        if (destroyed || version !== lifecycleVersion) return "";
+        const avatarUrl = extractAvatarUrl(data, platform);
+        const validUrl = isPublicHttpUrl(avatarUrl, config.AVATAR_MAX_URL_LENGTH) ? avatarUrl : "";
+        if (validUrl) negativeAvatarFetches.delete(identity.key);
+        else
+          negativeAvatarFetches.set(identity.key, now() + config.AVATAR_FAILURE_COOLDOWN);
+        return validUrl;
+      }).finally(() => pendingAvatarFetches.delete(identity.key));
+      pendingAvatarFetches.set(identity.key, request);
+      return request;
+    }
+    function applyAvatar(row, identity, userColor) {
+      const avatarElement = row.querySelector(".avatar");
+      if (!avatarElement) return;
+      const rawAvatar = getRawAvatar(row, config);
+      const fallback = generateInitialsAvatar(identity.displayName, userColor);
+      avatarElement.src = fallback;
+      const version = lifecycleVersion;
+      if (rawAvatar) {
+        preloadAvatar(avatarElement, rawAvatar, fallback, identity.key, version);
+        avatarStore.set(identity.key, rawAvatar);
+        return;
+      }
+      const cached = avatarStore.get(identity.key);
+      if (cached) {
+        preloadAvatar(avatarElement, cached, fallback, identity.key, version);
+        return;
+      }
+      requestPlatformAvatar(identity, row).then((url) => {
+        if (!url || destroyed || version !== lifecycleVersion) return;
+        avatarStore.set(identity.key, url);
+        preloadAvatar(avatarElement, url, fallback, identity.key, version);
+      }).catch((error) => report2(debug, "avatar-fetch-failed", { key: identity.key }, error));
+    }
+    function getFirstMessageKind(row, identity, historical) {
+      const nativeFlag = getNativeFirstFlag(row);
+      const mode = config.FIRST_MESSAGE_MODE;
+      const supportsNative = mode === "native-only" || mode === "native-or-session";
+      const supportsSession = mode === "session-only" || mode === "native-or-session";
+      let kind = "";
+      if (!historical && supportsNative && nativeFlag === true) {
+        kind = "native";
+      } else if (!historical && supportsSession && radarReady && !sessionSeen.has(identity.key)) {
+        kind = "session";
+      }
+      sessionSeen.add(identity.key);
+      return kind;
+    }
+    function findRowByMessageId(messageId) {
+      if (!log || !messageId) return null;
+      return Array.from(log.querySelectorAll(".message-row[data-id]")).find(
+        (row) => normalizeToken(row.getAttribute("data-id"), 256) === messageId
+      ) || null;
+    }
+    function applyStreamlabsMetadata(row, attributes) {
+      if (!row || !attributes) return false;
+      let changed = false;
+      Object.entries(attributes).forEach(([name, value]) => {
+        if (!OBSERVED_METADATA_ATTRIBUTES.includes(name)) return;
+        if (row.getAttribute(name) === value) return;
+        row.setAttribute(name, value);
+        changed = true;
+      });
+      return changed;
+    }
+    function hydratePendingStreamlabsMetadata(row) {
+      const messageId = normalizeToken(row && row.getAttribute("data-id"), 256);
+      if (!messageId) return false;
+      const attributes = pendingStreamlabsMetadata.get(messageId);
+      if (!attributes) return false;
+      pendingStreamlabsMetadata.delete(messageId);
+      return applyStreamlabsMetadata(row, attributes);
+    }
+    function cacheStreamlabsMetadata(messageId, attributes) {
+      const previous = pendingStreamlabsMetadata.get(messageId) || {};
+      pendingStreamlabsMetadata.delete(messageId);
+      pendingStreamlabsMetadata.set(messageId, Object.assign(previous, attributes));
+      while (pendingStreamlabsMetadata.size > STREAMLABS_METADATA_CACHE_LIMIT) {
+        const oldest = pendingStreamlabsMetadata.keys().next().value;
+        pendingStreamlabsMetadata.delete(oldest);
+      }
+    }
+    function onStreamlabsEvent(event) {
+      if (destroyed) return;
+      const metadata = extractStreamlabsMetadata(event);
+      if (!metadata) return;
+      const row = findRowByMessageId(metadata.messageId);
+      if (!row) {
+        cacheStreamlabsMetadata(metadata.messageId, metadata.attributes);
+        return;
+      }
+      applyStreamlabsMetadata(row, metadata.attributes);
+      if (row.dataset.processed === "1") queueRefreshRow(row);
+      else queueRow(row, false);
+    }
+    function syncPlatform(row, platform) {
+      Array.from(row.classList).filter((token) => token.startsWith("platform-")).forEach((token) => row.classList.remove(token));
+      row.classList.add("platform-" + platform);
+      row.dataset.detectedPlatform = platform;
+    }
+    function updateRowMetadata(row, processOptions = {}) {
+      hydratePendingStreamlabsMetadata(row);
+      const state = rowStates.get(row) || {};
+      const platform = getPlatform(row);
+      if (!isAllowedPlatform(platform, config.PLATFORM_DISPLAY_MODE)) {
+        if (platform === "unknown" && normalizeToken(row.getAttribute("data-id"), 256)) {
+          row.hidden = true;
+          row.classList.add("personchat-platform-filtered");
+        } else {
+          clearRowTimer(row);
+          row.remove();
+          return null;
+        }
+      } else {
+        row.hidden = false;
+        row.classList.remove("personchat-platform-filtered");
+      }
+      const identity = getUserIdentity(row, platform);
+      const messageElement = row.querySelector(".user-message");
+      if (!messageElement) return null;
+      const messageText = String(messageElement.textContent || "").trim();
+      syncPlatform(row, platform);
+      row.dataset.userKeySource = identity.keySource;
+      const badgesElement = row.querySelector(".badges");
+      const roles = getUserRoles(badgesElement, row);
+      keepIconBadgesOnly(badgesElement);
+      Array.from(row.classList).filter((token) => token.startsWith("role-")).forEach((token) => row.classList.remove(token));
+      roles.forEach((role) => row.classList.add("role-" + role));
+      const userColor = normalizeToken(row.getAttribute("data-color"), 80) || "#888888";
+      const nameElement = row.querySelector(".user-name");
+      if (nameElement && isUsableColor(userColor)) nameElement.style.color = userColor;
+      addPlatformBadge(row, platform, config);
+      addRolePills(row, roles, config);
+      const eventName = normalizeToken(row.getAttribute("data-event-name"), 100);
+      const currentEvent = normalizeToken(row.getAttribute("data-event"), 100).toLowerCase();
+      if ((!currentEvent || currentEvent === "message" || currentEvent === "chat") && eventName) {
+        row.setAttribute("data-event", eventName);
+      }
+      const events = detectMessageEvents(row);
+      addEventBanner(row, events, config);
+      const rawAvatar = getRawAvatar(row, config);
+      const avatarSignature = identity.key + "\n" + rawAvatar;
+      if (state.avatarSignature !== avatarSignature) {
+        applyAvatar(row, identity, userColor);
+        state.avatarSignature = avatarSignature;
+      }
+      let firstKind = "";
+      if (processOptions.initial) {
+        firstKind = getFirstMessageKind(row, identity, Boolean(processOptions.historical));
+        if (firstKind) addFirstMessageBanner(row, firstKind);
+      } else {
+        sessionSeen.add(identity.key);
+        const nativeMode = config.FIRST_MESSAGE_MODE === "native-only" || config.FIRST_MESSAGE_MODE === "native-or-session";
+        if (!state.historical && nativeMode && getNativeFirstFlag(row) === true) {
+          addFirstMessageBanner(row, "native");
+        }
+      }
+      const reply = getReplyInfo(row, messageText, config);
+      if (reply.target) {
+        addReplyPill(row, reply);
+        removeReplyMentionFromMessage(messageElement, reply.target);
+      }
+      const hasSpecialState = Boolean(
+        firstKind || reply.target || events.length || row.classList.contains("msg-first-message") || row.classList.contains("msg-session-first")
+      );
+      if (!processOptions.initial && hasSpecialState) row.classList.remove("msg-compact-chain");
+      if (lastVisibleMessage && lastVisibleMessage.row === row) {
+        lastVisibleMessage.userKey = identity.key;
+      }
+      state.historical = state.historical || Boolean(processOptions.historical);
+      state.identityKey = identity.key;
+      rowStates.set(row, state);
+      return { identity, messageElement, events, reply, firstKind, hasSpecialState };
+    }
+    function processRow(row, processOptions = {}) {
+      if (!rowIsReady(row)) return false;
+      row.dataset.processed = "1";
+      hydratePendingStreamlabsMetadata(row);
+      const messageElement = row.querySelector(".user-message");
+      const messageText = String(messageElement.textContent || "").trim();
+      if (config.HIDE_COMMANDS && messageText.startsWith("!")) {
+        row.remove();
+        return true;
+      }
+      const timeElement = row.querySelector(".chat-time");
+      if (timeElement) {
+        timeElement.textContent = nowTime(now);
+        timeElement.dateTime = new Date(now()).toISOString();
+      }
+      const metadata = updateRowMetadata(row, {
+        initial: true,
+        historical: Boolean(processOptions.historical)
+      });
+      if (!metadata) return true;
+      applyMessageChain(row, metadata.identity.key, metadata.hasSpecialState);
+      embedImages(row, config, timers);
+      if (config.HIDE_AFTER > 0) {
+        const timer = setTimer(() => {
+          hideTimers.delete(row);
+          removeWithFade(row);
+        }, config.HIDE_AFTER * 1e3);
+        hideTimers.set(row, timer);
+      }
+      trimMessages();
+      return true;
+    }
+    function queueRow(row, historical = false) {
+      if (!row) return;
+      if (row.dataset.processed === "1") {
+        queueRefreshRow(row);
+        return;
+      }
+      if (queuedRows.has(row)) return;
+      const version = lifecycleVersion;
+      queuedRows.add(row);
+      queueTask(() => {
+        queuedRows.delete(row);
+        if (destroyed || version !== lifecycleVersion || !documentRef.documentElement.contains(row))
+          return;
+        processRow(row, { historical });
+      });
+    }
+    function queueRefreshRow(row) {
+      if (!row || row.dataset.processed !== "1" || queuedRefreshRows.has(row) || destroyed)
+        return;
+      const version = lifecycleVersion;
+      queuedRefreshRows.add(row);
+      queueTask(() => {
+        queuedRefreshRows.delete(row);
+        if (!destroyed && version === lifecycleVersion && documentRef.documentElement.contains(row))
+          updateRowMetadata(row);
+      });
+    }
+    function rowsFromNode(node) {
+      const rows = [];
+      if (!node || node.nodeType !== 1) return rows;
+      if (node.matches?.(".message-row")) rows.push(node);
+      node.querySelectorAll?.(".message-row").forEach((row) => rows.push(row));
+      return rows;
+    }
+    function clearRemovedRows(node) {
+      rowsFromNode(node).forEach((row) => {
+        clearRowTimer(row);
+        if (lastVisibleMessage && lastVisibleMessage.row === row) lastVisibleMessage = null;
+      });
+    }
+    function queueRowsFromMutation(mutation) {
+      const candidates = /* @__PURE__ */ new Set();
+      mutation.removedNodes?.forEach(clearRemovedRows);
+      if (mutation.type === "attributes") {
+        const row = mutation.target.closest?.(".message-row");
+        if (row) candidates.add(row);
+      }
+      mutation.addedNodes.forEach((node) => {
+        const element = node.nodeType === 1 ? node : node.parentElement || mutation.target;
+        if (!element || typeof element.closest !== "function") return;
+        const ownerRow = element.closest(".message-row");
+        if (ownerRow) candidates.add(ownerRow);
+        if (typeof element.querySelectorAll === "function") {
+          element.querySelectorAll(".message-row").forEach((row) => candidates.add(row));
+        }
+      });
+      if (mutation.type === "characterData") {
+        const ownerRow = mutation.target.parentElement?.closest(".message-row");
+        if (ownerRow) candidates.add(ownerRow);
+      }
+      candidates.forEach((row) => {
+        if (row.dataset.processed !== "1") {
+          queueRow(row, false);
+          return;
+        }
+        const targetElement = mutation.target.nodeType === 1 ? mutation.target : mutation.target.parentElement;
+        const touchesBadges = Boolean(targetElement?.closest?.(".badges"));
+        if (mutation.type === "attributes" || touchesBadges) queueRefreshRow(row);
+      });
+    }
+    function flush() {
+      return avatarStore.flush();
+    }
+    function onVisibilityChange() {
+      if (documentRef.visibilityState === "hidden") flush();
+    }
+    function start() {
+      if (started) return true;
+      log = documentRef && documentRef.getElementById("log");
+      if (!log) return false;
+      destroyed = false;
+      lifecycleVersion += 1;
+      started = true;
+      applySettings();
+      documentRef.addEventListener("onEventReceived", onStreamlabsEvent);
+      log.querySelectorAll(".message-row").forEach((row) => {
+        processRow(row, { historical: true });
+      });
+      if (!radarReady) {
+        radarTimer = setTimer(() => {
+          radarTimer = null;
+          radarReady = true;
+        }, config.FIRST_MESSAGE_WARMUP);
+      }
+      observer = new windowRef.MutationObserver((mutations) => {
+        mutations.forEach(queueRowsFromMutation);
+      });
+      observer.observe(log, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+        attributes: true,
+        attributeFilter: OBSERVED_METADATA_ATTRIBUTES
+      });
+      windowRef.addEventListener("beforeunload", flush);
+      documentRef.addEventListener("visibilitychange", onVisibilityChange);
+      return true;
+    }
+    function destroy() {
+      if (destroyed && !started) return;
+      destroyed = true;
+      lifecycleVersion += 1;
+      if (observer) observer.disconnect();
+      observer = null;
+      documentRef.removeEventListener("onEventReceived", onStreamlabsEvent);
+      if (radarTimer != null) clearTimer(radarTimer);
+      radarTimer = null;
+      avatarFetchQueue.splice(0).forEach((entry) => entry.resolve(null));
+      Array.from(avatarFetchCancellations).forEach((cancel) => cancel());
+      avatarFetchCancellations.clear();
+      avatarPreloads.forEach(({ image, timeout }) => {
+        timers.clear(timeout);
+        image.onload = null;
+        image.onerror = null;
+        image.src = "";
+      });
+      avatarPreloads.clear();
+      pendingAvatarFetches.clear();
+      negativeAvatarFetches.clear();
+      pendingStreamlabsMetadata.clear();
+      hideTimers.forEach((timer) => clearTimer(timer));
+      hideTimers.clear();
+      auxiliaryTimers.forEach((timer) => clearTimer(timer));
+      auxiliaryTimers.clear();
+      windowRef.removeEventListener("beforeunload", flush);
+      documentRef.removeEventListener("visibilitychange", onVisibilityChange);
+      avatarStore.dispose();
+      lastVisibleMessage = null;
+      started = false;
+    }
+    return {
+      config,
+      start,
+      destroy,
+      flush,
+      processRow,
+      removeWithFade,
+      getState() {
+        return {
+          started,
+          radarReady,
+          sessionSeen: new Set(sessionSeen),
+          avatarStore: avatarStore.status(),
+          lastVisibleRow: lastVisibleMessage && lastVisibleMessage.row
+        };
+      }
+    };
+  }
+
+  // src/index.js
+  function bootstrapPersonChat(options = {}) {
+    const documentRef = options.document || globalThis.document;
+    const windowRef = options.window || documentRef && documentRef.defaultView || globalThis;
+    let overlay = null;
+    let rootObserver = null;
+    let waitingForDomReady = false;
+    let destroyed = false;
+    const tryStart = () => {
+      if (destroyed) return false;
+      if (overlay) return true;
+      const candidate = createChatOverlay({
+        ...options,
+        config: options.config || CONFIG,
+        document: documentRef,
+        window: windowRef
+      });
+      if (!candidate.start()) {
+        candidate.destroy();
+        return false;
+      }
+      overlay = candidate;
+      if (rootObserver) rootObserver.disconnect();
+      rootObserver = null;
+      windowRef.__personChatOverlay = overlay;
+      return true;
+    };
+    const waitForLog = () => {
+      waitingForDomReady = false;
+      if (destroyed) return;
+      if (tryStart() || rootObserver || !documentRef.documentElement) return;
+      rootObserver = new windowRef.MutationObserver(() => tryStart());
+      rootObserver.observe(documentRef.documentElement, {
+        childList: true,
+        subtree: true
+      });
+    };
+    if (documentRef.readyState === "loading") {
+      waitingForDomReady = true;
+      documentRef.addEventListener("DOMContentLoaded", waitForLog, { once: true });
+    } else {
+      waitForLog();
+    }
+    return {
+      get overlay() {
+        return overlay;
+      },
+      destroy() {
+        destroyed = true;
+        if (waitingForDomReady) {
+          documentRef.removeEventListener("DOMContentLoaded", waitForLog);
+          waitingForDomReady = false;
+        }
+        if (rootObserver) rootObserver.disconnect();
+        if (overlay) overlay.destroy();
+        if (windowRef.__personChatOverlay === overlay) {
+          try {
+            delete windowRef.__personChatOverlay;
+          } catch {
+            windowRef.__personChatOverlay = void 0;
+          }
+        }
+        rootObserver = null;
+        overlay = null;
+      }
+    };
+  }
+  if (typeof document !== "undefined" && typeof window !== "undefined") {
+    bootstrapPersonChat();
+  }
+})();

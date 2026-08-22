@@ -1,14 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap');
-
+/* PersonChat v7.2.0 | Streamlabs Chat Box */
 /* ===== ANIMACOES GERAIS ===== */
 @keyframes slideIn {
-    from { opacity: 0; transform: translate3d(-18px, 0, 0); }
-    to   { opacity: 1; transform: translate3d(0, 0, 0); }
+    from {
+        opacity: 0;
+        transform: translate3d(-18px, 0, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
 }
 
 @keyframes fadeOut {
-    from { opacity: 1; transform: translate3d(0, 0, 0); }
-    to   { opacity: 0; transform: translate3d(0, -10px, 0); }
+    from {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translate3d(0, -10px, 0);
+    }
 }
 
 @keyframes goldSweep {
@@ -17,8 +30,16 @@
 }
 
 @keyframes sparkleStar {
-    0%, 100% { opacity: 0.6; transform: scale(0.9) rotate(0deg); }
-    50%      { opacity: 1;   transform: scale(1.1) rotate(15deg); }
+    0%,
+    100% {
+        opacity: 0.6;
+        transform: scale(0.9) rotate(0deg);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.1) rotate(15deg);
+    }
 }
 
 @keyframes replyPulse {
@@ -44,18 +65,19 @@ body {
 
 * {
     box-sizing: border-box;
-    font-family: 'Montserrat', sans-serif !important;
+    font-family: Montserrat, 'Segoe UI', Arial, sans-serif !important;
 }
 
 #log {
-    --message-line-length: 50ch;
+    --message-line-length: 25ch;
     --chat-header-bg: #6c4bd8;
     --chat-message-bg: #2c2148;
     --chat-message-color: #ffffff;
-    --chat-header-text: rgba(0,0,0,0.78);
-    --row-accent: #f19eb8;
+    --chat-header-text: #ffffff;
+    --row-accent: #6c4bd8;
     --reply-bg: rgba(42, 42, 42, 0.6);
-    --reply-border: #444;
+    --reply-border: #444444;
+
     position: absolute;
     inset: 0;
     width: 100%;
@@ -68,43 +90,51 @@ body {
     overflow: hidden;
 }
 
-/* ABAIXO COPIE E SUBSTIUA NAS CONFIGURAÇÕES GERAIS A CIMA O THEMA PRESET QUE QUER. */
-
-
-/* #log.theme-pink-gold {
+/* ===== TEMAS ===== */
+#log.theme-pink-gold {
     --chat-header-bg: #f19eb8;
     --chat-message-bg: #a95272;
     --chat-message-color: #ffffff;
+    --chat-header-text: #35101f;
+    --row-accent: #f19eb8;
 }
 
 #log.theme-dark-purple {
     --chat-header-bg: #6c4bd8;
     --chat-message-bg: #2c2148;
     --chat-message-color: #ffffff;
+    --chat-header-text: #ffffff;
+    --row-accent: #6c4bd8;
 }
 
 #log.theme-kick-green {
     --chat-header-bg: #64e655;
     --chat-message-bg: #17351b;
     --chat-message-color: #ffffff;
+    --chat-header-text: #102410;
+    --row-accent: #53fc18;
 }
 
 #log.theme-youtube-red {
     --chat-header-bg: #ff4d4d;
     --chat-message-bg: #5c171d;
     --chat-message-color: #ffffff;
+    --chat-header-text: #310707;
+    --row-accent: #ff0033;
 }
 
 #log.theme-clean-white {
     --chat-header-bg: #f5f5f5;
     --chat-message-bg: #ffffff;
     --chat-message-color: #222222;
-    --chat-header-text: rgba(0,0,0,0.78);
+    --chat-header-text: #222222;
+    --row-accent: #777777;
 }
 
 /* ===== ESTRUTURA BASE DA MENSAGEM ===== */
 .message-row {
     --row-accent: var(--chat-header-bg);
+
     width: fit-content;
     max-width: min(820px, calc(100vw - 48px));
     margin-bottom: 20px;
@@ -156,7 +186,7 @@ body {
     border-radius: 20px;
     font-size: 12px;
     font-weight: 700;
-    color: #fff;
+    color: #ffffff;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
     white-space: nowrap;
 }
@@ -165,6 +195,12 @@ body {
     background: linear-gradient(90deg, #b8860b, #daa520);
     color: #4a2c00;
     box-shadow: 0 0 15px rgba(184,134,11,0.4);
+}
+
+.banner-session-first {
+    background: linear-gradient(90deg, #0f766e, #0891b2);
+    color: #ecfeff;
+    box-shadow: 0 0 15px rgba(34,211,238,0.32);
 }
 
 /* ===== CABECALHO ===== */
@@ -221,6 +257,7 @@ body {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: var(--chat-header-text);
     font-size: 18px;
     font-weight: 800;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
@@ -236,7 +273,7 @@ body {
     padding: 0 6px;
     border-radius: 999px;
     background: var(--row-accent);
-    color: #fff;
+    color: #ffffff;
     font-size: 10px;
     font-weight: 800;
     line-height: 1;
@@ -262,7 +299,7 @@ body {
     padding: 0 6px;
     border-radius: 999px;
     background: rgba(0,0,0,0.26);
-    color: #fff;
+    color: #ffffff;
     font-size: 10px;
     font-weight: 800;
     line-height: 1;
@@ -271,11 +308,19 @@ body {
 .role-pill-moderator { background: #2f9e74; }
 .role-pill-vip { background: #d946ef; }
 .role-pill-subscriber { background: #7c3aed; }
-.role-pill-founder { background: #b8860b; color: #2a1800; }
+
+.role-pill-founder {
+    background: #b8860b;
+    color: #2a1800;
+}
 .role-pill-broadcaster { background: #ef4444; }
 .role-pill-staff { background: #2563eb; }
 
 #log:not(.show-role-pills) .role-pill {
+    display: none;
+}
+
+#log:not(.show-platform-badges) .platform-badge {
     display: none;
 }
 
@@ -288,7 +333,7 @@ body {
     border-radius: 20px;
     background: var(--reply-bg);
     border: 1px solid var(--reply-border);
-    color: #fff;
+    color: #ffffff;
     font-size: 12px;
     font-weight: 700;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -303,12 +348,32 @@ body {
 
 .reply-icon {
     flex: 0 0 auto;
-    color: #888;
+    color: #888888;
     font-size: 14px;
+}
+
+.reply-label {
+    flex: 0 0 auto;
+    opacity: 0.72;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .reply-name {
     min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reply-message {
+    min-width: 0;
+    max-width: 22ch;
+    padding-left: 8px;
+    border-left: 1px solid rgba(255, 255, 255, 0.28);
+    opacity: 0.82;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -319,7 +384,7 @@ body {
     z-index: 1;
     width: fit-content;
     max-width: min(var(--message-line-length), calc(100vw - 120px));
-    padding: 24px 20px 16px 20px;
+    padding: 24px 20px 16px;
     border-radius: 12px;
     background: var(--chat-message-bg);
     color: var(--chat-message-color);
@@ -327,13 +392,12 @@ body {
     font-weight: 500;
     line-height: 1.35;
     overflow-wrap: anywhere;
-    word-break: break-word;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .banner-event {
-    background: #222;
-    color: #fff;
+    background: #222222;
+    color: #ffffff;
     border: 1px solid rgba(255,255,255,0.16);
 }
 
@@ -363,7 +427,8 @@ body {
 .event-superchat .user-message,
 .event-donation .user-message,
 .event-raid .user-message,
-.event-sub .user-message {
+.event-sub .user-message,
+.event-follow .user-message {
     animation: eventGlow 3s ease-in-out infinite;
 }
 
@@ -383,16 +448,8 @@ body {
     --row-accent: #86efac;
 }
 
-.message-row.platform-twitch .message-header {
-    --row-accent: #9146ff;
-}
-
-.message-row.platform-youtube .message-header {
-    --row-accent: #ff0033;
-}
-
-.message-row.platform-kick .message-header {
-    --row-accent: #53fc18;
+.event-follow .message-header {
+    --row-accent: #93c5fd;
 }
 
 .msg-compact-chain {
@@ -468,6 +525,34 @@ body {
     animation: sparkleStar 2.5s ease-in-out infinite;
 }
 
+.msg-session-first .message-header {
+    background: #12343b;
+    border: 1px solid #22d3ee;
+}
+
+.msg-session-first .chat-time,
+.msg-session-first .user-name {
+    color: #ecfeff !important;
+}
+
+.msg-session-first .user-message {
+    box-shadow:
+        0 4px 12px rgba(0,0,0,0.2),
+        inset 0 0 0 1px rgba(34,211,238,0.45);
+}
+
+.message-row.platform-twitch .message-header {
+    --row-accent: #9146ff;
+}
+
+.message-row.platform-youtube .message-header {
+    --row-accent: #ff0033;
+}
+
+.message-row.platform-kick .message-header {
+    --row-accent: #53fc18;
+}
+
 /* ===== GERAL ===== */
 .emote,
 .emoji {
@@ -476,12 +561,20 @@ body {
     background-size: 0;
 }
 
+.deleted {
+    display: none !important;
+}
+
+.personchat-platform-filtered {
+    display: none !important;
+}
+
 .fadeOutUp {
     pointer-events: none;
     animation: fadeOut .5s ease forwards;
 }
 
-@media (max-width: 520px) {
+@media (width <= 520px) {
     #log {
         padding: 16px;
     }
@@ -506,4 +599,14 @@ body {
         font-size: 16px;
     }
 }
-i9o0789,.;
+
+@media (prefers-reduced-motion: reduce) {
+    #log *,
+    #log *::before,
+    #log *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}

@@ -1,9 +1,0 @@
-TAMANHO RECOMENDADO É: 
-
-400 X 700
-
-(porem o chat é flex se você aumentar ou diminuir o tamanho dele o chat se adpta)
-
-Qualquer duvida entra em contato! :)
-
-dc: miyzuuu_

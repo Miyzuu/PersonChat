@@ -1,44 +1,141 @@
-# PersonChat - Multistream Chat Overlay
+# PersonChat v7.2.0 — Caixa de Chat para Streamlabs
 
-Um overlay de chat moderno, leve e totalmente personalizável para transmissões ao vivo. Projetado para funcionar com OBS Studio via Streamlabs, ele é focado em alta performance (ideal para Subathons) e suporte simultâneo a múltiplas plataformas.
+Tema de chat moderno e responsivo para Twitch, YouTube e Kick, desenvolvido especificamente para a **Caixa de chat nativa da Streamlabs**.
 
-## ✨ Principais Recursos
+## 📦 Somente três arquivos
 
-- **🌐 Suporte Multistream Nativo:** Identificação visual automática de espectadores da Twitch, YouTube e Kick com ícones e contornos personalizados.
-- **🚀 Otimizado para Subathons:** Sistema inteligente de cache de avatares no navegador (LocalStorage) com limites e autolimpeza para evitar consumo excessivo de memória em lives longas.
-- **🎨 Multitemas Integrados:** Troque o visual do chat alterando apenas uma linha de código. Temas inclusos: `dark-purple` (Padrão), `pink-gold`, `kick-green`, `youtube-red` e `clean-white`.
-- **✨ Destaque de Eventos e Primeira Mensagem:** Animações CSS avançadas (como ondas de brilho e estrelas) para destacar de forma luxuosa os *First-Time Chatters*, além de banners iluminados para Super Chats, Doações, Raids, Subs e Follows.
-- **💬 Respostas (Replies) Inteligentes:** Suporte visual para respostas diretas no chat ou via menção direta (`@usuario`), incluindo pílulas flutuantes informativas.
-- **📱 Design Responsivo e Compacto:** Layout flexível que se adapta a telas verticais (Shorts/TikTok) e agrupa mensagens seguidas do mesmo usuário para manter a tela limpa.
+A implementação completa está dentro destes arquivos:
 
-## ⚙️ Como Instalar
+- **HTML.txt** — estrutura visual da mensagem;
+- **CSS.txt** — temas, avatar, caixa de reply e animações;
+- **JS.txt** — configuração, integração com as plataformas e todos os fallbacks.
 
-1. Acesse o seu painel do **Streamlabs** e adicione um widget de **Chat Box**.
-2. Ative a opção para usar **HTML/CSS/JS Customizado**.
-3. Baixe os arquivos da última versão (Release) deste repositório e substitua os códigos:
-   - Cole o conteúdo do arquivo `HTML.txt` na aba **HTML**.
-   - Cole o conteúdo do arquivo `CSS.txt` na aba **CSS**.
-   - Cole o conteúdo do arquivo `JS.txt` na aba **JS**.
-4. Copie a URL do widget e adicione como uma **Fonte de Navegador** no seu OBS Studio.
-5. **Tamanho recomendado no OBS:** `Largura: 400` x `Altura: 700` (O chat é flexível e se adaptará caso você altere as proporções).
+Nenhum outro arquivo é necessário para instalar ou executar o PersonChat.
 
-## 🛠️ Como Configurar
+## 🧩 Campos personalizados
 
-Você não precisa mexer no CSS para personalizar as opções básicas! Toda a configuração é feita de forma simples no topo do arquivo **JS**. 
+O PersonChat **não utiliza o botão Adicionar Campos personalizados**.
 
-Procure pelo bloco `CONFIG` nas primeiras linhas do script para ajustar o chat ao seu gosto:
+Não é necessário criar JSON, formulário ou arquivo extra. Todas as opções ficam no objeto **PERSONCHAT_CONFIG**, nas primeiras linhas de **JS.txt**.
 
-```javascript
-const CONFIG = {
-    THEME: "dark-purple", // Opções: pink-gold, dark-purple, kick-green, youtube-red, clean-white
-    MESSAGE_LINE_LENGTH: "50ch", // Largura do balão de texto
-    MAX_MESSAGES: 15, // Limite de mensagens simultâneas na tela
-    HIDE_AFTER: 45, // Segundos para a mensagem sumir
-    SHOW_PLATFORM_BADGE: true, // Mostrar ícone de Twitch/YouTube/Kick
-    SHOW_ROLE_PILLS: false, // Mostrar tags como MOD, VIP e SUB
-    // ... e muito mais!
-};
-```
+## ⚙️ Instalação
 
-📞 Contato / Suporte
-Em caso de dúvidas sobre a instalação ou para relatar bugs, entre em contato via Discord: miyzuuu_
+1. Abra **Todos os widgets > Caixa de chat** no painel da Streamlabs.
+2. Ative **HTML/CSS personalizado**.
+3. Cole o conteúdo de **HTML.txt** na aba HTML.
+4. Cole o conteúdo de **CSS.txt** na aba CSS.
+5. Cole o conteúdo de **JS.txt** na aba JS.
+6. Clique em **Salvar configurações**.
+7. Envie uma mensagem de teste.
+8. No OBS, adicione a URL da Caixa de chat como **Fonte de navegador**.
+
+Substitua sempre os três arquivos juntos.
+
+## ✨ Recursos
+
+- Cinco temas visuais.
+- Avatar real do usuário quando a plataforma disponibiliza a foto.
+- Busca controlada de avatar da Twitch e Kick quando necessário.
+- Avatar local por iniciais se a foto falhar ou não existir.
+- Caixa **Em resposta a @usuário**.
+- Trecho da mensagem original dentro da caixa de reply quando fornecido pela plataforma.
+- Fallback de reply para mensagens iniciadas por **@usuário**.
+- Badges e emotes inseridos pela própria Streamlabs.
+- Agrupamento de mensagens consecutivas.
+- Compatibilidade com exclusões feitas pela moderação.
+- Limites, timeout, cache e cancelamento para requisições externas.
+- Animações com suporte a movimento reduzido.
+
+## 🖼️ Como o avatar funciona
+
+O JavaScript identifica mensagens nos formatos usados pela Caixa de chat:
+
+- Twitch: eventos **PRIVMSG** e **CHAT**;
+- YouTube: **youtube#liveChatMessage** e **CHAT**;
+- Kick: **chat.message.sent** e **CHAT**.
+
+A ordem utilizada é:
+
+1. foto entregue pelo evento da plataforma;
+2. foto salva no cache local;
+3. busca controlada na Twitch ou Kick;
+4. avatar SVG com as iniciais.
+
+A mensagem nunca é escondida se uma foto não carregar.
+
+## ↩️ Como o reply funciona
+
+Quando Twitch ou Kick enviam os dados estruturados do reply, o PersonChat mostra:
+
+- o usuário respondido;
+- o texto original, quando disponível;
+- a resposta atual sem duplicar a menção inicial.
+
+Quando esses dados não chegam, uma mensagem iniciada por **@usuário** ativa o fallback visual de reply.
+
+## 🎨 Temas
+
+Edite **THEME** no topo de **JS.txt**:
+
+- **dark-purple** — padrão;
+- **pink-gold**;
+- **kick-green**;
+- **youtube-red**;
+- **clean-white**.
+
+## 🔧 Configuração
+
+Exemplo do bloco encontrado no início de **JS.txt**:
+
+    globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
+        THEME: "dark-purple",
+        MESSAGE_LINE_LENGTH: "25ch",
+        MAX_MESSAGES: 50,
+        HIDE_AFTER: 0,
+        HIDE_COMMANDS: true,
+        SHOW_PLATFORM_BADGE: false,
+        SHOW_ROLE_PILLS: false,
+        SHOW_EVENT_BANNERS: false,
+        HIDE_REPEATED_AVATAR_AND_NAME: true,
+        FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN: true,
+        FETCH_KICK_AVATAR: true,
+        REPLY_FALLBACK_FROM_LEADING_MENTION: true,
+        EMBED_IMAGES: false,
+        IMAGE_ALLOWED_HOSTS: []
+    };
+
+### Opções principais
+
+| Opção                                     | Função                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------- |
+| THEME                                     | Escolhe o tema visual.                                                    |
+| MESSAGE_LINE_LENGTH                       | Controla a largura aproximada do texto.                                   |
+| MAX_MESSAGES                              | Limita as mensagens mantidas na tela.                                     |
+| HIDE_AFTER                                | Use 0 para deixar o tempo sob controle da Streamlabs.                     |
+| HIDE_REPEATED_AVATAR_AND_NAME             | Agrupa mensagens consecutivas do mesmo usuário.                           |
+| FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN | Tenta recuperar foto Twitch quando faltam metadados.                      |
+| FETCH_KICK_AVATAR                         | Permite recuperar foto pela API pública da Kick.                          |
+| REPLY_FALLBACK_FROM_LEADING_MENTION       | Cria reply visual para mensagens iniciadas por @usuário.                  |
+| EMBED_IMAGES                              | Converte links autorizados em imagens; permanece desligado por segurança. |
+
+## 🌐 Plataformas e emotes
+
+Selecione Twitch, YouTube e Kick no próprio painel da Streamlabs.
+
+BetterTTV, FrankerFaceZ, 7TV, palavras ocultas, usuários silenciados, atraso e tempo de permanência também devem ser configurados no painel. O PersonChat não duplica essas configurações.
+
+## 🔒 Segurança
+
+- Links do chat não viram imagens por padrão.
+- Endereços locais, IPs privados, literais IPv6 e URLs não HTTPS são bloqueados.
+- Requisições de avatar possuem timeout, limite de concorrência, fila e cooldown.
+- Eventos sem comando de chat reconhecido são ignorados.
+- Falhas de API ou CORS sempre retornam ao avatar por iniciais.
+
+## 📐 Tamanho recomendado no OBS
+
+Use aproximadamente **400 × 700** como ponto de partida. O layout se adapta a outras dimensões.
+
+## 📞 Contato
+
+Discord: **miyzuuu_**
