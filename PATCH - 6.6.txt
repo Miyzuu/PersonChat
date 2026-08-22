@@ -1,0 +1,27 @@
+Versao 6.6
+
+Correcoes aplicadas:
+
+- Removidas por padrao as tags textuais de cargo depois do nome, como LIVE e SUB.
+- Mantidos apenas os badges originais de icone dentro da area .badges.
+- Corrigido falso evento Sub/Membro causado por badges de subscriber/member.
+- Eventos especiais agora nao leem mais o HTML inteiro da mensagem, evitando falsos positivos.
+- Agrupamento de mensagens seguidas deve funcionar tambem na Twitch, pois mensagens normais deixam de ser marcadas como evento especial.
+- Hora da primeira mensagem agora fica branca no header escuro/dourado.
+- Contorno por plataforma reforcado:
+  Twitch roxo, YouTube vermelho e Kick verde.
+- Adicionada busca best-effort de avatar da Kick via:
+  https://kick.com/api/v2/channels/{usuario}
+
+Configuracoes relevantes no topo do JS:
+
+- SHOW_ROLE_PILLS: false
+  Mantem removidas as tags textuais depois do nome.
+
+- FETCH_KICK_AVATAR: true
+  Tenta buscar foto do viewer da Kick quando o Streamlabs nao entrega avatar valido.
+
+Observacao:
+
+- A busca de avatar da Kick depende de o endpoint publico da Kick responder com permissao para o overlay.
+  Se a Kick bloquear CORS em algum momento, o chat continua usando o avatar de iniciais como fallback.

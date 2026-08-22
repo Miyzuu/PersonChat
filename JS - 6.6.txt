@@ -1,0 +1,885 @@
+// ===== CONFIGURACOES GERAIS =====
+const CONFIG = {
+    THEME: "pink-gold", // pink-gold, dark-purple, kick-green, youtube-red, clean-white
+    MESSAGE_LINE_LENGTH: "25ch",
+    MAX_MESSAGES: 15,
+    HIDE_AFTER: 45,
+    HIDE_COMMANDS: true,
+    SHOW_PLATFORM_BADGE: true,
+    SHOW_ROLE_PILLS: false,
+    SHOW_EVENT_BANNERS: true,
+    HIDE_REPEATED_AVATAR_AND_NAME: true,
+    REPEATED_MESSAGE_WINDOW: 120000,
+
+    AVATAR_CACHE_KEY: "chatbox_avatar_db_v2",
+    AVATAR_LEGACY_KEYS: ["tw_avatar_db_v1"],
+    MAX_AVATAR_DB_SIZE: 1500,
+    AVATAR_EXPIRY: 5 * 24 * 60 * 60 * 1000,
+    AVATAR_SAVE_DEBOUNCE: 3000,
+
+    SEEN_CACHE_KEY: "chatbox_seen_db_v3",
+    SEEN_LEGACY_KEYS: ["tw_seen_db_v2"],
+    MAX_SEEN_DB_SIZE: 8000,
+    SEEN_EXPIRY: 30 * 24 * 60 * 60 * 1000,
+    SEEN_SAVE_DEBOUNCE: 2000,
+
+    // Evita marcar todo mundo como "primeira mensagem" quando o overlay e instalado no meio da live.
+    FIRST_MESSAGE_WARMUP: 10000,
+
+    // Deixe false para multistream. A busca externa de avatar via IVR funciona somente para Twitch.
+    FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN: false,
+    FETCH_KICK_AVATAR: true,
+
+    // Alguns widgets entregam reply apenas como "@usuario mensagem".
+    // Se isso causar falso positivo com mencoes normais, troque para false.
+    REPLY_FALLBACK_FROM_LEADING_MENTION: true
+};
+
+const TRANSPARENT_PIXEL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+// ===== STORAGE =====
+function storageGet(key) {
+    try { return localStorage.getItem(key); } catch(e) { return null; }
+}
+
+function storageSet(key, value) {
+    try { localStorage.setItem(key, value); } catch(e) {}
+}
+
+function parseJSON(value) {
+    if (!value) return null;
+    try {
+        const parsed = JSON.parse(value);
+        return parsed && typeof parsed === "object" ? parsed : null;
+    } catch(e) {
+        return null;
+    }
+}
+
+function loadDB(primaryKey, legacyKeys, migrateEntry) {
+    const primary = parseJSON(storageGet(primaryKey));
+    if (primary) return { db: primary, hadStorage: true };
+
+    for (const legacyKey of legacyKeys) {
+        const legacy = parseJSON(storageGet(legacyKey));
+        if (!legacy) continue;
+
+        const migrated = {};
+        for (const key in legacy) {
+            const next = migrateEntry(key, legacy[key]);
+            if (next && next.key) migrated[next.key] = next.value;
+        }
+        storageSet(primaryKey, JSON.stringify(migrated));
+        return { db: migrated, hadStorage: true };
+    }
+
+    return { db: {}, hadStorage: false };
+}
+
+function normalizeToken(value) {
+    const token = String(value || "").trim();
+    if (!token || token.includes("{") || token.includes("}")) return "";
+    return token;
+}
+
+function escapeXml(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+}
+
+function isUsableColor(value) {
+    const color = normalizeToken(value);
+    return color.startsWith("#") || color.startsWith("rgb") || color.startsWith("hsl");
+}
+
+// ===== BANCO DE AVATARES =====
+const avatarLoad = loadDB(CONFIG.AVATAR_CACHE_KEY, CONFIG.AVATAR_LEGACY_KEYS, (username, data) => {
+    const cleanName = normalizeToken(username).toLowerCase();
+    if (!cleanName || !data || !data.url) return null;
+    return {
+        key: `twitch:${cleanName}`,
+        value: { url: data.url, ts: Number(data.ts) || Date.now() }
+    };
+});
+
+let avatarDB = avatarLoad.db;
+let avatarSaveTimer = null;
+const pendingAvatarFetches = new Map();
+
+function flushAvatarDB() {
+    clearTimeout(avatarSaveTimer);
+    avatarSaveTimer = null;
+    storageSet(CONFIG.AVATAR_CACHE_KEY, JSON.stringify(avatarDB));
+}
+
+function scheduleAvatarSave() {
+    clearTimeout(avatarSaveTimer);
+    avatarSaveTimer = setTimeout(flushAvatarDB, CONFIG.AVATAR_SAVE_DEBOUNCE);
+}
+
+function getAvatarFromDB(userKey) {
+    const data = avatarDB[userKey];
+    if (data && data.url && Date.now() - data.ts < CONFIG.AVATAR_EXPIRY) return data.url;
+    return null;
+}
+
+function saveAvatarToDB(userKey, url) {
+    if (!userKey || !url) return;
+
+    const current = avatarDB[userKey];
+    const now = Date.now();
+    if (current && current.url === url && now - current.ts < 6 * 60 * 60 * 1000) return;
+
+    avatarDB[userKey] = { url: url, ts: now };
+
+    const keys = Object.keys(avatarDB);
+    if (keys.length > CONFIG.MAX_AVATAR_DB_SIZE) {
+        keys.sort((a, b) => (avatarDB[a].ts || 0) - (avatarDB[b].ts || 0));
+        for (let i = 0; i < Math.min(100, keys.length - CONFIG.MAX_AVATAR_DB_SIZE); i++) {
+            delete avatarDB[keys[i]];
+        }
+    }
+
+    scheduleAvatarSave();
+}
+
+function fetchTwitchAvatar(username) {
+    const login = normalizeToken(username).toLowerCase();
+    if (!login) return Promise.resolve(null);
+
+    const key = `twitch:${login}`;
+    if (pendingAvatarFetches.has(key)) return pendingAvatarFetches.get(key);
+
+    const request = fetch(`https://api.ivr.fi/v2/twitch/user?login=${encodeURIComponent(login)}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            if (Array.isArray(data) && data[0] && data[0].logo) return data[0].logo;
+            if (data && data.logo) return data.logo;
+            return null;
+        })
+        .catch(() => null)
+        .finally(() => pendingAvatarFetches.delete(key));
+
+    pendingAvatarFetches.set(key, request);
+    return request;
+}
+
+function fetchKickAvatar(username) {
+    const login = normalizeToken(username).toLowerCase();
+    if (!login || !CONFIG.FETCH_KICK_AVATAR) return Promise.resolve(null);
+
+    const key = `kick:${login}`;
+    if (pendingAvatarFetches.has(key)) return pendingAvatarFetches.get(key);
+
+    const request = fetch(`https://kick.com/api/v2/channels/${encodeURIComponent(login)}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            if (data && data.user && data.user.profile_pic) return data.user.profile_pic;
+            if (data && data.profile_pic) return data.profile_pic;
+            return null;
+        })
+        .catch(() => null)
+        .finally(() => pendingAvatarFetches.delete(key));
+
+    pendingAvatarFetches.set(key, request);
+    return request;
+}
+
+// ===== RADAR DE PRIMEIRA MENSAGEM =====
+const seenLoad = loadDB(CONFIG.SEEN_CACHE_KEY, CONFIG.SEEN_LEGACY_KEYS, (username, value) => {
+    const cleanName = normalizeToken(username).toLowerCase();
+    if (!cleanName) return null;
+    return {
+        key: `twitch:${cleanName}`,
+        value: value === true ? Date.now() : Number(value) || Date.now()
+    };
+});
+
+let seenDB = seenLoad.db;
+let seenSaveTimer = null;
+let firstMessageRadarReady = seenLoad.hadStorage;
+let lastVisibleMessage = null;
+
+function cleanupSeenDB() {
+    const now = Date.now();
+    let changed = false;
+
+    for (const key in seenDB) {
+        if (seenDB[key] === true) {
+            seenDB[key] = now;
+            changed = true;
+        } else if (!seenDB[key] || now - Number(seenDB[key]) > CONFIG.SEEN_EXPIRY) {
+            delete seenDB[key];
+            changed = true;
+        }
+    }
+
+    const keys = Object.keys(seenDB);
+    if (keys.length > CONFIG.MAX_SEEN_DB_SIZE) {
+        keys.sort((a, b) => Number(seenDB[a] || 0) - Number(seenDB[b] || 0));
+        const removeCount = keys.length - CONFIG.MAX_SEEN_DB_SIZE;
+        for (let i = 0; i < removeCount; i++) delete seenDB[keys[i]];
+        changed = true;
+    }
+
+    if (changed) storageSet(CONFIG.SEEN_CACHE_KEY, JSON.stringify(seenDB));
+}
+
+cleanupSeenDB();
+
+if (!firstMessageRadarReady) {
+    setTimeout(() => {
+        firstMessageRadarReady = true;
+    }, CONFIG.FIRST_MESSAGE_WARMUP);
+}
+
+function flushSeenDB() {
+    clearTimeout(seenSaveTimer);
+    seenSaveTimer = null;
+    storageSet(CONFIG.SEEN_CACHE_KEY, JSON.stringify(seenDB));
+}
+
+function saveSeenDB() {
+    clearTimeout(seenSaveTimer);
+    seenSaveTimer = setTimeout(flushSeenDB, CONFIG.SEEN_SAVE_DEBOUNCE);
+}
+
+// ===== UTILIDADES =====
+function nowTime() {
+    return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function getPlatform(row) {
+    const attrs = [
+        "data-platform",
+        "data-provider",
+        "data-service",
+        "data-source",
+        "data-site",
+        "data-channel",
+        "data-message-source"
+    ];
+
+    for (const attr of attrs) {
+        const value = normalizeToken(row.getAttribute(attr)).toLowerCase();
+        if (value) return normalizePlatform(value);
+    }
+
+    const className = String(row.className || "").toLowerCase();
+    if (className.includes("twitch")) return "twitch";
+    if (className.includes("youtube") || className.includes("yt-")) return "youtube";
+    if (className.includes("kick")) return "kick";
+
+    const avatarUrl = normalizeToken(row.querySelector(".avatar")?.getAttribute("data-avatar") || row.querySelector(".avatar")?.src).toLowerCase();
+    if (avatarUrl.includes("twitch") || avatarUrl.includes("jtvnw")) return "twitch";
+    if (avatarUrl.includes("ytimg") || avatarUrl.includes("youtube") || avatarUrl.includes("googleusercontent")) return "youtube";
+    if (avatarUrl.includes("kick")) return "kick";
+
+    const html = row.innerHTML.toLowerCase();
+    if (html.includes("twitch")) return "twitch";
+    if (html.includes("youtube") || html.includes("ytimg")) return "youtube";
+    if (html.includes("kick")) return "kick";
+
+    return "unknown";
+}
+
+function normalizePlatform(value) {
+    const platform = String(value || "").toLowerCase();
+    if (platform.includes("twitch")) return "twitch";
+    if (platform.includes("youtube") || platform === "yt") return "youtube";
+    if (platform.includes("kick")) return "kick";
+    return platform.replace(/[^a-z0-9_-]/g, "") || "unknown";
+}
+
+function getUserKey(platform, username) {
+    return `${platform || "unknown"}:${String(username || "user").toLowerCase()}`;
+}
+
+function generateInitialsAvatar(username, color) {
+    const cleanName = normalizeToken(username) || "User";
+    const initials = escapeXml(cleanName.substring(0, 2).toUpperCase());
+    let bgColor = isUsableColor(color) ? normalizeToken(color) : "#2a2a2a";
+
+    return "data:image/svg+xml;utf8," + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="32" fill="${bgColor}" />
+            <text x="50%" y="54%" font-family="Montserrat, sans-serif" font-weight="bold" font-size="24" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${initials}</text>
+        </svg>
+    `);
+}
+
+function removeWithFade(row) {
+    if (!row || !document.contains(row)) return;
+    clearTimeout(row._hideTimer);
+    row.classList.add("fadeOutUp");
+    setTimeout(() => {
+        if (document.contains(row)) row.remove();
+    }, 500);
+}
+
+function trimMessages() {
+    const rows = document.querySelectorAll("#log .message-row:not(.fadeOutUp)");
+    const extra = rows.length - CONFIG.MAX_MESSAGES;
+    if (extra <= 0) return;
+
+    for (let i = 0; i < extra; i++) removeWithFade(rows[i]);
+}
+
+function isImageUrl(value) {
+    try {
+        const url = new URL(value);
+        return /\.(png|jpe?g|gif|webp)$/i.test(url.pathname);
+    } catch(e) {
+        return false;
+    }
+}
+
+function cleanUrlCandidate(value) {
+    return String(value || "").replace(/[),.!?\]]+$/g, "");
+}
+
+function escapeRegExp(value) {
+    return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function embedImages(row) {
+    const msgEl = row.querySelector(".user-message");
+    if (!msgEl || msgEl.querySelector(".embedded-image-container")) return;
+
+    const text = msgEl.textContent || "";
+    const candidates = text.match(/https?:\/\/[^\s<>"']+/gi);
+    if (!candidates) return;
+
+    const urls = [...new Set(candidates.map(cleanUrlCandidate).filter(isImageUrl))];
+    if (!urls.length) return;
+
+    const container = document.createElement("div");
+    container.className = "embedded-image-container";
+
+    urls.forEach(url => {
+        const img = document.createElement("img");
+        img.src = url;
+        img.className = "chat-embedded-image";
+        img.loading = "lazy";
+        img.referrerPolicy = "no-referrer";
+        container.appendChild(img);
+    });
+
+    msgEl.appendChild(container);
+}
+
+function getNativeFirstFlag(row) {
+    const attrs = ["data-first-message", "data-first-msg", "data-is-first"];
+    const trueValues = ["1", "true", "yes", "sim", "first", "first-message", "new-chatter"];
+    const falseValues = ["0", "false", "no", "nao", "não"];
+
+    for (const attr of attrs) {
+        const value = normalizeToken(row.getAttribute(attr)).toLowerCase();
+        if (!value) continue;
+        if (trueValues.includes(value)) return true;
+        if (falseValues.includes(value)) return false;
+    }
+
+    return null;
+}
+
+function hasPrivilegedBadge(badgesEl) {
+    if (!badgesEl) return false;
+
+    const keywords = [
+        "subscriber",
+        "founder",
+        "moderator",
+        "mod",
+        "vip",
+        "broadcaster",
+        "streamer",
+        "staff",
+        "partner"
+    ];
+
+    const badgeImgs = badgesEl.querySelectorAll("img, svg");
+    for (const img of badgeImgs) {
+        const alt = (img.getAttribute("alt") || "").toLowerCase();
+        const title = (img.getAttribute("title") || "").toLowerCase();
+        const src = (img.getAttribute("src") || "").toLowerCase();
+        if (keywords.some(k => alt.includes(k) || title.includes(k) || src.includes(k))) return true;
+    }
+
+    const html = badgesEl.innerHTML.toLowerCase();
+    return keywords.some(k => html.includes(k));
+}
+
+function badgeText(badgesEl) {
+    if (!badgesEl) return "";
+
+    const parts = [badgesEl.innerHTML || ""];
+    badgesEl.querySelectorAll("img, svg").forEach(el => {
+        parts.push(el.getAttribute("alt") || "");
+        parts.push(el.getAttribute("title") || "");
+        parts.push(el.getAttribute("src") || "");
+        parts.push(el.getAttribute("href") || "");
+    });
+
+    return parts.join(" ").toLowerCase();
+}
+
+function getUserRoles(badgesEl, row) {
+    const source = `${badgeText(badgesEl)} ${String(row.className || "").toLowerCase()}`;
+    const roles = [];
+
+    const checks = [
+        ["broadcaster", ["broadcaster", "streamer", "canal"]],
+        ["moderator", ["moderator", " mod ", "mod-", "moderador"]],
+        ["vip", ["vip"]],
+        ["founder", ["founder", "fundador"]],
+        ["subscriber", ["subscriber", "sub-gifter", "sub ", "inscrito", "sponsor"]],
+        ["staff", ["staff", "admin"]]
+    ];
+
+    checks.forEach(([role, keywords]) => {
+        if (keywords.some(keyword => source.includes(keyword))) roles.push(role);
+    });
+
+    return [...new Set(roles)];
+}
+
+function keepIconBadgesOnly(badgesEl) {
+    if (!badgesEl) return;
+
+    Array.from(badgesEl.childNodes).forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+            node.remove();
+            return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        const tag = node.tagName.toLowerCase();
+        const hasIcon = tag === "img" ||
+            tag === "svg" ||
+            Boolean(node.querySelector?.("img, svg"));
+
+        if (!hasIcon) node.remove();
+    });
+}
+
+function applyRoleClasses(row, roles) {
+    roles.forEach(role => row.classList.add(`role-${role}`));
+}
+
+function addRolePills(row, roles) {
+    if (!CONFIG.SHOW_ROLE_PILLS || !roles.length) return;
+
+    const header = row.querySelector(".message-header");
+    if (!header || header.querySelector(".role-pill")) return;
+
+    const labels = {
+        broadcaster: "LIVE",
+        moderator: "MOD",
+        vip: "VIP",
+        founder: "1ST",
+        subscriber: "SUB",
+        staff: "STAFF"
+    };
+
+    roles.slice(0, 2).forEach(role => {
+        const pill = document.createElement("span");
+        pill.className = `role-pill role-pill-${role}`;
+        pill.textContent = labels[role] || role.toUpperCase();
+        header.appendChild(pill);
+    });
+}
+
+function addPlatformBadge(row, platform) {
+    if (!CONFIG.SHOW_PLATFORM_BADGE || !platform || platform === "unknown") return;
+
+    const header = row.querySelector(".message-header");
+    if (!header || header.querySelector(".platform-badge")) return;
+
+    const labels = {
+        twitch: "TW",
+        youtube: "YT",
+        kick: "K"
+    };
+
+    const badge = document.createElement("span");
+    badge.className = `platform-badge platform-badge-${platform}`;
+    badge.textContent = labels[platform] || platform.substring(0, 2).toUpperCase();
+
+    const badgesEl = header.querySelector(".badges");
+    header.insertBefore(badge, badgesEl || header.firstChild);
+}
+
+function detectMessageEvents(row, msgText) {
+    const attrs = [
+        "data-event",
+        "data-type",
+        "data-message-type",
+        "data-activity",
+        "data-source"
+    ].map(attr => row.getAttribute(attr) || "").join(" ");
+
+    const source = `${String(row.className || "").toLowerCase()} ${attrs.toLowerCase()} ${String(msgText || "").toLowerCase()}`;
+    const events = [];
+
+    const checks = [
+        ["superchat", ["super chat", "superchat", "super sticker", "supersticker"]],
+        ["donation", ["doou", "donat", "donation", "doacao", "doação", "tip"]],
+        ["raid", [" raid", "raided", "invadiu", "raidou"]],
+        ["sub", [" subscribed", "subscribed at", "virou membro", "membership gifted", "member for"]],
+        ["follow", ["followed", "seguiu", "novo follower", "new follower"]]
+    ];
+
+    checks.forEach(([eventName, keywords]) => {
+        if (keywords.some(keyword => source.includes(keyword))) events.push(eventName);
+    });
+
+    return [...new Set(events)];
+}
+
+function addEventBanners(row, events) {
+    if (!CONFIG.SHOW_EVENT_BANNERS || !events.length) return;
+
+    const decorators = row.querySelector(".message-decorators");
+    if (!decorators) return;
+
+    const labels = {
+        superchat: "Super Chat",
+        donation: "Doacao",
+        raid: "Raid",
+        sub: "Sub/Membro",
+        follow: "Follow"
+    };
+
+    events.slice(0, 1).forEach(eventName => {
+        row.classList.add(`event-${eventName}`);
+        if (decorators.querySelector(`.banner-event-${eventName}`)) return;
+
+        const banner = document.createElement("div");
+        banner.className = `special-banner banner-event banner-event-${eventName}`;
+        banner.textContent = labels[eventName] || eventName;
+        decorators.appendChild(banner);
+    });
+}
+
+function addFirstMessageBanner(row) {
+    row.classList.add("msg-first-message");
+
+    const decorators = row.querySelector(".message-decorators");
+    if (!decorators || decorators.querySelector(".banner-first")) return;
+
+    const banner = document.createElement("div");
+    banner.className = "special-banner banner-first";
+    banner.textContent = "Primeira vez no chat!";
+    decorators.appendChild(banner);
+}
+
+function addReplyPill(row, replyParentRaw) {
+    const replyName = normalizeToken(replyParentRaw);
+    if (!replyName) return;
+
+    const headerRow = row.querySelector(".message-header-row");
+    if (!headerRow || headerRow.querySelector(".reply-pill")) return;
+
+    row.classList.add("msg-reply");
+
+    const replyPill = document.createElement("div");
+    replyPill.className = "reply-pill";
+
+    const icon = document.createElement("span");
+    icon.className = "reply-icon";
+    icon.textContent = "↩";
+
+    const name = document.createElement("span");
+    name.className = "reply-name";
+    name.textContent = replyName;
+
+    replyPill.append(icon, name);
+    headerRow.appendChild(replyPill);
+}
+
+function getReplyInfo(row, msgText) {
+    const attrs = [
+        "data-reply-parent",
+        "data-reply-parent-name",
+        "data-reply-parent-username",
+        "data-reply-parent-display-name",
+        "data-reply-parent-user-name",
+        "data-reply-to",
+        "data-reply-to-name"
+    ];
+
+    for (const attr of attrs) {
+        const value = normalizeToken(row.getAttribute(attr));
+        if (value) return { target: value, fromMentionFallback: false };
+    }
+
+    if (!CONFIG.REPLY_FALLBACK_FROM_LEADING_MENTION) {
+        return { target: "", fromMentionFallback: false };
+    }
+
+    const match = String(msgText || "").match(/^@([^\s:,.!?]+)\s+/);
+    if (!match || !match[1]) return { target: "", fromMentionFallback: false };
+
+    return { target: match[1], fromMentionFallback: true };
+}
+
+function removeReplyMentionFromMessage(msgEl, replyTarget) {
+    if (!msgEl || !replyTarget) return;
+
+    const target = String(replyTarget).replace(/^@/, "");
+    const pattern = new RegExp(`^@${escapeRegExp(target)}[\\s:,-]+`, "i");
+
+    for (const node of Array.from(msgEl.childNodes)) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const nextText = node.textContent.replace(pattern, "");
+            if (nextText !== node.textContent) {
+                node.textContent = nextText;
+                return;
+            }
+        }
+
+        if (node.nodeType === Node.ELEMENT_NODE && node.textContent) {
+            const nextText = node.textContent.replace(pattern, "");
+            if (nextText !== node.textContent) {
+                node.textContent = nextText;
+                return;
+            }
+        }
+    }
+
+    msgEl.textContent = msgEl.textContent.replace(pattern, "");
+}
+
+function applyMessageChain(row, userKey, hasSpecialState) {
+    if (!CONFIG.HIDE_REPEATED_AVATAR_AND_NAME || hasSpecialState) {
+        lastVisibleMessage = { userKey, ts: Date.now() };
+        return;
+    }
+
+    const now = Date.now();
+    const isRepeated =
+        lastVisibleMessage &&
+        lastVisibleMessage.userKey === userKey &&
+        now - lastVisibleMessage.ts <= CONFIG.REPEATED_MESSAGE_WINDOW;
+
+    if (isRepeated) row.classList.add("msg-compact-chain");
+
+    lastVisibleMessage = { userKey, ts: now };
+}
+
+function applyOverlaySettings(log) {
+    if (!log) return;
+
+    const theme = normalizeToken(CONFIG.THEME) || "pink-gold";
+    log.classList.add(`theme-${theme}`);
+    log.style.setProperty("--message-line-length", CONFIG.MESSAGE_LINE_LENGTH || "25ch");
+
+    if (CONFIG.SHOW_PLATFORM_BADGE) log.classList.add("show-platform-badges");
+    if (CONFIG.SHOW_ROLE_PILLS) log.classList.add("show-role-pills");
+    if (CONFIG.SHOW_EVENT_BANNERS) log.classList.add("show-event-banners");
+    if (CONFIG.HIDE_REPEATED_AVATAR_AND_NAME) log.classList.add("compact-repeat-enabled");
+}
+
+function applyAvatar(row, username, lowerName, userColor, platform, userKey) {
+    const avatarEl = row.querySelector(".avatar");
+    if (!avatarEl) return;
+
+    const rawAvatar = normalizeToken(avatarEl.getAttribute("data-avatar") || row.getAttribute("data-avatar"));
+    const fallbackSvg = generateInitialsAvatar(username, userColor);
+
+    const applyImage = (url) => {
+        if (!url) {
+            avatarEl.src = fallbackSvg;
+            return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+            if (document.contains(avatarEl)) avatarEl.src = url;
+        };
+        img.onerror = () => {
+            if (document.contains(avatarEl)) avatarEl.src = fallbackSvg;
+        };
+        img.src = url;
+    };
+
+    const cachedUrl = getAvatarFromDB(userKey);
+    if (cachedUrl) {
+        applyImage(cachedUrl);
+        return;
+    }
+
+    const hasGoodRawAvatar = rawAvatar &&
+        rawAvatar !== TRANSPARENT_PIXEL &&
+        !rawAvatar.includes("default") &&
+        !rawAvatar.includes("blank");
+
+    if (hasGoodRawAvatar) {
+        applyImage(rawAvatar);
+        saveAvatarToDB(userKey, rawAvatar);
+        return;
+    }
+
+    if (platform === "kick") {
+        fetchKickAvatar(lowerName).then(url => {
+            if (url) {
+                applyImage(url);
+                saveAvatarToDB(userKey, url);
+            } else if (document.contains(avatarEl)) {
+                avatarEl.src = fallbackSvg;
+            }
+        });
+        return;
+    }
+
+    const canFetchTwitchAvatar = platform === "twitch" ||
+        (platform === "unknown" && CONFIG.FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN);
+
+    if (!canFetchTwitchAvatar) {
+        avatarEl.src = fallbackSvg;
+        return;
+    }
+
+    fetchTwitchAvatar(lowerName).then(url => {
+        if (url) {
+            applyImage(url);
+            saveAvatarToDB(userKey, url);
+        } else if (document.contains(avatarEl)) {
+            avatarEl.src = fallbackSvg;
+        }
+    });
+}
+
+// ===== PROCESSAMENTO PRINCIPAL =====
+function processRow(row, options = {}) {
+    if (!row || row.dataset.processed === "1") return;
+    row.dataset.processed = "1";
+
+    const username = normalizeToken(row.getAttribute("data-from")) || "User";
+    const lowerName = username.toLowerCase();
+    const platform = getPlatform(row);
+    const userKey = getUserKey(platform, lowerName);
+    const userColor = normalizeToken(row.getAttribute("data-color")) || "#888";
+    const msgEl = row.querySelector(".user-message");
+    const msgText = msgEl ? msgEl.textContent.trim() : "";
+
+    row.classList.add(`platform-${platform}`);
+
+    if (CONFIG.HIDE_COMMANDS && msgText.startsWith("!")) {
+        row.remove();
+        return;
+    }
+
+    const badgesEl = row.querySelector(".badges");
+    if (badgesEl && badgesEl.innerHTML.includes("{badges}")) {
+        badgesEl.innerHTML = badgesEl.innerHTML.replace(/{badges}/g, "");
+    }
+    keepIconBadgesOnly(badgesEl);
+
+    const timeEl = row.querySelector(".chat-time");
+    if (timeEl) timeEl.textContent = nowTime();
+
+    const nameEl = row.querySelector(".user-name");
+    if (nameEl && isUsableColor(userColor)) nameEl.style.color = userColor;
+
+    addPlatformBadge(row, platform);
+
+    const roles = getUserRoles(badgesEl, row);
+    applyRoleClasses(row, roles);
+    addRolePills(row, roles);
+
+    const events = detectMessageEvents(row, msgText);
+    addEventBanners(row, events);
+
+    applyAvatar(row, username, lowerName, userColor, platform, userKey);
+
+    let isFirstTimeChatter = false;
+    const nativeFirst = getNativeFirstFlag(row);
+    const isHistorical = Boolean(options.historical);
+
+    if (!isHistorical) {
+        if (nativeFirst === true) {
+            isFirstTimeChatter = true;
+        } else if (
+            nativeFirst !== false &&
+            firstMessageRadarReady &&
+            !seenDB[userKey] &&
+            !hasPrivilegedBadge(badgesEl)
+        ) {
+            isFirstTimeChatter = true;
+        }
+
+        if (row.innerHTML.toLowerCase().includes("new-chatter")) {
+            isFirstTimeChatter = true;
+        }
+    }
+
+    seenDB[userKey] = Date.now();
+    saveSeenDB();
+
+    if (isFirstTimeChatter) addFirstMessageBanner(row);
+
+    const replyInfo = getReplyInfo(row, msgText);
+    if (replyInfo.target) {
+        addReplyPill(row, replyInfo.target);
+        removeReplyMentionFromMessage(msgEl, replyInfo.target);
+    }
+
+    applyMessageChain(row, userKey, isFirstTimeChatter || Boolean(replyInfo.target) || events.length > 0);
+
+    embedImages(row);
+
+    if (CONFIG.HIDE_AFTER !== 999) {
+        row._hideTimer = setTimeout(() => removeWithFade(row), CONFIG.HIDE_AFTER * 1000);
+    }
+
+    trimMessages();
+}
+
+// ===== OBSERVER =====
+function startObserver() {
+    const log = document.getElementById("log");
+    if (!log) return;
+
+    applyOverlaySettings(log);
+
+    log.querySelectorAll(".message-row").forEach(row => processRow(row, { historical: true }));
+
+    const observer = new MutationObserver(mutations => {
+        for (const mutation of mutations) {
+            mutation.addedNodes.forEach(node => {
+                if (!(node instanceof HTMLElement)) return;
+
+                if (node.classList.contains("message-row")) {
+                    processRow(node, { historical: false });
+                }
+
+                node.querySelectorAll?.(".message-row").forEach(row => {
+                    processRow(row, { historical: false });
+                });
+            });
+        }
+    });
+
+    observer.observe(log, { childList: true, subtree: true });
+}
+
+window.addEventListener("beforeunload", () => {
+    flushAvatarDB();
+    flushSeenDB();
+});
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+        flushAvatarDB();
+        flushSeenDB();
+    }
+});
+
+startObserver();
