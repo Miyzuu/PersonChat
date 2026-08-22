@@ -1,4 +1,4 @@
-# PersonChat v7.3.0 — Caixa de Chat Interativa para Streamlabs
+# PersonChat v7.4.0 — Caixa de Chat Interativa para Streamlabs
 
 Tema de chat moderno e responsivo para Twitch, YouTube e Kick, desenvolvido especificamente para a **Caixa de chat nativa da Streamlabs**.
 
@@ -33,7 +33,10 @@ Substitua sempre os três arquivos juntos.
 
 ## ✨ Recursos
 
-- Cinco temas visuais.
+- Dezesseis temas visuais com opções claras, escuras, neon, pastel e monocromáticas.
+- Cores pessoais de nick escolhidas pelo público com o comando **!cor**.
+- Preferências de cor persistidas com expiração e limite seguro de usuários.
+- Opção para o streamer mostrar ou ocultar as fotos dos usuários.
 - Avatar real do usuário quando a plataforma disponibiliza a foto.
 - Busca controlada de avatar da Twitch e Kick quando necessário.
 - Avatar local por iniciais se a foto falhar ou não existir.
@@ -55,6 +58,15 @@ Substitua sempre os três arquivos juntos.
 - Animações com suporte a movimento reduzido.
 
 ## 🖼️ Como o avatar funciona
+
+No topo de **JS.txt**, use:
+
+```js
+"SHOW_USER_AVATAR": "yes"
+```
+
+- **yes** — mostra foto real ou avatar por iniciais;
+- **no** — remove a foto, expande a mensagem e evita as buscas externas de avatar.
 
 O JavaScript identifica mensagens nos formatos usados pela Caixa de chat:
 
@@ -89,7 +101,41 @@ Edite **THEME** no topo de **JS.txt**:
 - **pink-gold**;
 - **kick-green**;
 - **youtube-red**;
-- **clean-white**.
+- **clean-white**;
+- **ocean-blue**;
+- **neon-cyber**;
+- **sunset-orange**;
+- **emerald-night**;
+- **royal-blue**;
+- **cherry-black**;
+- **lavender-dream**;
+- **gold-black**;
+- **ice-blue**;
+- **pastel-candy**;
+- **black-white** — preto, branco e cinzas, incluindo `#2e2e2e`.
+
+### Cores escolhidas pelo público
+
+Com **VIEWER_COLORS_ENABLED** ativado, cada pessoa pode escolher o degradê do próprio nick. O comando é ocultado automaticamente e a escolha aparece nas próximas mensagens.
+
+```text
+!cor roxo
+!cor azul
+!cor rosa
+!cor verde
+!cor dourado
+!cor oceano
+!cor fogo
+!cor pastel
+!cor preto
+!cor reset
+```
+
+As preferências ficam no armazenamento local do widget por 30 dias, com limite padrão de 1.000 usuários. O sistema mantém Twitch, YouTube e Kick separados e migra a preferência quando o ID da pessoa chega depois da mensagem.
+
+Por segurança, o público só pode usar os nomes existentes em **VIEWER_COLOR_PALETTE**. Códigos CSS, URLs e cores arbitrárias enviados pelo chat são ignorados. Streamer, moderador, raider, staff, eventos e primeiras mensagens continuam tendo prioridade visual sobre a cor pessoal.
+
+O streamer pode trocar o comando em **VIEWER_COLOR_COMMAND**, desativar o recurso ou editar os valores hexadecimais seguros da paleta no início de **JS.txt**. Nenhum Campo personalizado é necessário.
 
 ### Animações
 
@@ -150,6 +196,11 @@ Exemplo do bloco encontrado no início de **JS.txt**:
         SHOW_ROLE_PILLS: false,
         SHOW_EVENT_BANNERS: false,
         ROLE_GRADIENTS_ENABLED: true,
+        SHOW_USER_AVATAR: "yes",
+        VIEWER_COLORS_ENABLED: true,
+        VIEWER_COLOR_COMMAND: "!cor",
+        VIEWER_COLOR_EXPIRY: 2592000000,
+        VIEWER_COLOR_MAX_USERS: 1000,
         EMOTE_ONLY_MODE: true,
         GROUP_REPEATED_MESSAGES: true,
         HIDE_REPEATED_AVATAR_AND_NAME: true,
@@ -179,6 +230,12 @@ Exemplo do bloco encontrado no início de **JS.txt**:
 | GROUP_REPEATED_MESSAGES                   | Une mensagens iguais e mostra um contador.                                |
 | EMOTE_ONLY_MODE                           | Amplia mensagens compostas somente por emotes.                            |
 | ROLE_GRADIENTS_ENABLED                    | Ativa degradês animados por cargo.                                        |
+| SHOW_USER_AVATAR                         | Use yes para mostrar fotos ou no para ocultá-las e poupar requisições.    |
+| VIEWER_COLORS_ENABLED                     | Permite ao público escolher a cor do próprio nick com !cor.               |
+| VIEWER_COLOR_COMMAND                      | Define o comando reservado para selecionar uma cor pessoal.               |
+| VIEWER_COLOR_EXPIRY                       | Define por quanto tempo a preferência permanece salva, em milissegundos.  |
+| VIEWER_COLOR_MAX_USERS                    | Limita quantas preferências de pessoas ficam armazenadas.                  |
+| VIEWER_COLOR_PALETTE                      | Define a lista segura de degradês disponíveis ao público.                  |
 | WORD_EFFECTS_ENABLED                      | Ativa os gatilhos de palavras e frases.                                   |
 | CLIMAX_ENABLED                            | Ativa o modo visual para períodos de alta atividade.                      |
 | STREAMER_NAMES                            | Informa os nomes usados para detectar o streamer e suas menções.          |

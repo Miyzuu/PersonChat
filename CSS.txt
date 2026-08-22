@@ -1,4 +1,4 @@
-/* PersonChat v7.3.0 | Streamlabs Chat Box */
+/* PersonChat v7.4.0 | Streamlabs Chat Box */
 
 /* stylelint-disable no-descending-specificity -- Estados interativos sobrescrevem intencionalmente os seletores-base. */
 
@@ -291,6 +291,7 @@ body {
     --chat-message-color: #ffffff;
     --chat-header-text: #ffffff;
     --row-accent: #6c4bd8;
+    --row-accent-text: #ffffff;
     --reply-bg: rgba(42, 42, 42, 0.6);
     --reply-border: #444444;
 
@@ -314,6 +315,7 @@ body {
     --chat-message-color: #ffffff;
     --chat-header-text: #35101f;
     --row-accent: #f19eb8;
+    --row-accent-text: #35101f;
 }
 
 #log.theme-dark-purple {
@@ -322,6 +324,7 @@ body {
     --chat-message-color: #ffffff;
     --chat-header-text: #ffffff;
     --row-accent: #6c4bd8;
+    --row-accent-text: #ffffff;
 }
 
 #log.theme-kick-green {
@@ -330,6 +333,7 @@ body {
     --chat-message-color: #ffffff;
     --chat-header-text: #102410;
     --row-accent: #53fc18;
+    --row-accent-text: #102410;
 }
 
 #log.theme-youtube-red {
@@ -338,6 +342,7 @@ body {
     --chat-message-color: #ffffff;
     --chat-header-text: #310707;
     --row-accent: #ff0033;
+    --row-accent-text: #310707;
 }
 
 #log.theme-clean-white {
@@ -346,6 +351,106 @@ body {
     --chat-message-color: #222222;
     --chat-header-text: #222222;
     --row-accent: #777777;
+    --row-accent-text: #111111;
+}
+
+#log.theme-ocean-blue {
+    --chat-header-bg: #0e7490;
+    --chat-message-bg: #083344;
+    --chat-message-color: #f0fdfa;
+    --chat-header-text: #ffffff;
+    --row-accent: #22d3ee;
+    --row-accent-text: #083344;
+}
+
+#log.theme-neon-cyber {
+    --chat-header-bg: #22d3ee;
+    --chat-message-bg: #07111f;
+    --chat-message-color: #f8fafc;
+    --chat-header-text: #082f49;
+    --row-accent: #d946ef;
+    --row-accent-text: #ffffff;
+}
+
+#log.theme-sunset-orange {
+    --chat-header-bg: #f97316;
+    --chat-message-bg: #431407;
+    --chat-message-color: #fff7ed;
+    --chat-header-text: #431407;
+    --row-accent: #fdba74;
+    --row-accent-text: #431407;
+}
+
+#log.theme-emerald-night {
+    --chat-header-bg: #10b981;
+    --chat-message-bg: #052e16;
+    --chat-message-color: #ecfdf5;
+    --chat-header-text: #052e16;
+    --row-accent: #34d399;
+    --row-accent-text: #052e16;
+}
+
+#log.theme-royal-blue {
+    --chat-header-bg: #1d4ed8;
+    --chat-message-bg: #172554;
+    --chat-message-color: #eff6ff;
+    --chat-header-text: #ffffff;
+    --row-accent: #60a5fa;
+    --row-accent-text: #172554;
+}
+
+#log.theme-cherry-black {
+    --chat-header-bg: #be123c;
+    --chat-message-bg: #18040a;
+    --chat-message-color: #fff1f2;
+    --chat-header-text: #ffffff;
+    --row-accent: #fb7185;
+    --row-accent-text: #4c0519;
+}
+
+#log.theme-lavender-dream {
+    --chat-header-bg: #c4b5fd;
+    --chat-message-bg: #f5f3ff;
+    --chat-message-color: #2e1065;
+    --chat-header-text: #2e1065;
+    --row-accent: #8b5cf6;
+    --row-accent-text: #ffffff;
+}
+
+#log.theme-gold-black {
+    --chat-header-bg: #fbbf24;
+    --chat-message-bg: #17130a;
+    --chat-message-color: #fef3c7;
+    --chat-header-text: #2a1800;
+    --row-accent: #f59e0b;
+    --row-accent-text: #2a1800;
+}
+
+#log.theme-ice-blue {
+    --chat-header-bg: #bae6fd;
+    --chat-message-bg: #e0f2fe;
+    --chat-message-color: #082f49;
+    --chat-header-text: #0c4a6e;
+    --row-accent: #0284c7;
+    --row-accent-text: #ffffff;
+}
+
+#log.theme-pastel-candy {
+    --chat-header-bg: #fda4af;
+    --chat-message-bg: #fff1f2;
+    --chat-message-color: #4c0519;
+    --chat-header-text: #4c0519;
+    --row-accent: #c084fc;
+    --row-accent-text: #3b0764;
+}
+
+#log.theme-black-white {
+    --chat-header-bg: #2e2e2e;
+    --chat-message-bg: #0f0f0f;
+    --chat-message-color: #ffffff;
+    --chat-header-text: #ffffff;
+    --row-accent: #d4d4d4;
+    --row-accent-text: #111111;
 }
 
 /* ===== ESTRUTURA BASE DA MENSAGEM ===== */
@@ -392,6 +497,14 @@ body {
     display: block;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     margin-top: 20px;
+}
+
+#log:not(.show-user-avatars) .message-row {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+#log:not(.show-user-avatars) .avatar {
+    display: none;
 }
 
 .message-content {
@@ -511,7 +624,7 @@ body {
     padding: 0 6px;
     border-radius: 999px;
     background: var(--row-accent);
-    color: #ffffff;
+    color: var(--row-accent-text);
     font-size: 10px;
     font-weight: 800;
     line-height: 1;
@@ -519,10 +632,25 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.18);
 }
 
-.platform-twitch { --row-accent: #9146ff; }
-.platform-youtube { --row-accent: #ff0033; }
-.platform-kick { --row-accent: #53fc18; }
-.platform-unknown { --row-accent: var(--chat-header-bg); }
+.platform-twitch {
+    --row-accent: #9146ff;
+    --row-accent-text: #ffffff;
+}
+
+.platform-youtube {
+    --row-accent: #ff0033;
+    --row-accent-text: #310707;
+}
+
+.platform-kick {
+    --row-accent: #53fc18;
+    --row-accent-text: #102410;
+}
+
+.platform-unknown {
+    --row-accent: var(--chat-header-bg);
+    --row-accent-text: var(--chat-header-text);
+}
 
 .platform-kick .platform-badge {
     color: #102410;
@@ -543,20 +671,20 @@ body {
     line-height: 1;
 }
 
-.role-pill-moderator { background: #2f9e74; }
-.role-pill-raider { background: #7c3aed; }
-.role-pill-vip { background: #d946ef; }
-.role-pill-subscriber { background: #7c3aed; }
+.role-pill-moderator { background: #047857; }
+.role-pill-raider { background: #6d28d9; }
+.role-pill-vip { background: #a21caf; }
+.role-pill-subscriber { background: #6d28d9; }
 
 .role-pill-founder {
     background: #b8860b;
     color: #2a1800;
 }
-.role-pill-broadcaster { background: #ef4444; }
-.role-pill-staff { background: #2563eb; }
+.role-pill-broadcaster { background: #b91c1c; }
+.role-pill-staff { background: #1d4ed8; }
 
 #log.role-gradients-enabled .role-broadcaster .message-header {
-    background: linear-gradient(120deg, #dc2626, #db2777, #7c3aed, #f59e0b, #dc2626);
+    background: linear-gradient(120deg, #dc2626, #be185d, #7c3aed, #b45309, #dc2626);
     background-size: 300% 300%;
     animation: roleGradientWave 5.2s ease-in-out infinite;
 
@@ -564,7 +692,7 @@ body {
 }
 
 #log.role-gradients-enabled .role-moderator:not(.role-broadcaster) .message-header {
-    background: linear-gradient(120deg, #047857, #0d9488, #22d3ee, #047857);
+    background: linear-gradient(120deg, #047857, #0f766e, #0e7490, #047857);
     background-size: 280% 280%;
     animation: roleGradientWave 5.8s ease-in-out infinite;
 
@@ -594,6 +722,23 @@ body {
 #log.role-gradients-enabled :is(.role-broadcaster, .role-moderator, .role-raider) :is(.chat-time, .user-name) {
     color: #ffffff !important;
     text-shadow: 0 1px 3px rgba(0,0,0,0.48);
+}
+
+#log.viewer-colors-enabled .message-row.viewer-color-active:not(:is(.role-broadcaster, .role-moderator, .role-raider, .role-staff, .event-superchat, .event-donation, .event-raid, .event-sub, .event-follow, .msg-first-message, .msg-session-first)) .message-header {
+    --row-accent: var(--viewer-color-accent);
+    --row-accent-text: var(--viewer-color-text);
+
+    background: linear-gradient(120deg, var(--viewer-color-start), var(--viewer-color-end));
+    box-shadow: 0 4px 8px rgba(0,0,0,0.24), inset 0 0 0 1px var(--viewer-color-accent);
+}
+
+#log.viewer-colors-enabled .message-row.viewer-color-active:not(:is(.role-broadcaster, .role-moderator, .role-raider, .role-staff, .event-superchat, .event-donation, .event-raid, .event-sub, .event-follow, .msg-first-message, .msg-session-first)) .avatar {
+    box-shadow: 0 0 0 3px var(--viewer-color-accent), 0 4px 10px rgba(0,0,0,0.3);
+}
+
+#log.viewer-colors-enabled .message-row.viewer-color-active:not(:is(.role-broadcaster, .role-moderator, .role-raider, .role-staff, .event-superchat, .event-donation, .event-raid, .event-sub, .event-follow, .msg-first-message, .msg-session-first)) :is(.chat-time, .user-name) {
+    color: var(--viewer-color-text) !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.42);
 }
 
 #log:not(.show-role-pills) .role-pill {
@@ -711,7 +856,7 @@ body {
     padding: 0 8px;
     border-radius: 999px;
     background: var(--row-accent);
-    color: #ffffff;
+    color: var(--row-accent-text);
     font-size: 12px;
     font-weight: 900;
     line-height: 1;

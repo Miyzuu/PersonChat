@@ -1,4 +1,4 @@
-<!-- PersonChat v7.3.0 | Streamlabs Chat Box -->
+<!-- PersonChat v7.4.0 | Streamlabs Chat Box -->
 <div id="personchat-effects-backdrop" class="personchat-effects-layer" aria-hidden="true"></div>
 
 <div
