@@ -1,8 +1,9 @@
-// PersonChat v7.4.0 | Streamlabs Chat Box
+// PersonChat v7.5.0 | Streamlabs Chat Box
 // ===== CONFIGURACAO EDITAVEL DO PERSONCHAT =====
 // Ajuste somente este objeto antes de colar o arquivo no widget.
-// Para detectar mencoes antes de o streamer falar, preencha STREAMER_NAMES sem o @.
-globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
+// STREAMER_NAMES aceita "SeuCanal" ou ["SeuCanal"]. Mantenha o nome entre aspas e sem @.
+// A atribuicao direta garante que o botao Salvar da Streamlabs aplique esta configuracao atual.
+globalThis.PERSONCHAT_CONFIG = {
     "THEME": "dark-purple",
     "MESSAGE_ANIMATION": "soft-slide",
     "TEXT_EFFECT": "soft-glow",
@@ -54,7 +55,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     "WORD_EFFECTS_ENABLED": true,
     "WORD_EFFECTS": [
         { "trigger": "Briar", "effect": "confetti", "match": "word", "cooldown": 6000, "particles": 44 },
-        { "trigger": "GG", "effect": "energy-wave", "match": "word", "cooldown": 8000, "threshold": 3, "window": 6000, "uniqueUsers": true },
+        { "trigger": "GG", "effect": "energy-wave", "match": "word", "cooldown": 8000, "threshold": 3, "window": 10000, "uniqueUsers": true },
         { "trigger": "Hype", "effect": "hype-pulse", "match": "word", "cooldown": 4000 },
         { "trigger": "Boa noite", "effect": "stars", "match": "phrase", "cooldown": 6000, "particles": 28 },
         { "trigger": "F", "effect": "mono-rain", "match": "exact", "cooldown": 5000, "particles": 34 }
@@ -68,7 +69,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     "CLIMAX_COOLDOWN": 15000,
     "STREAMER_HIGHLIGHT_ENABLED": true,
     "STREAMER_MENTION_ENABLED": true,
-    "STREAMER_NAMES": [],
+    "STREAMER_NAMES": "",
     "STREAMER_MENTION_DURATION": 1600
 };
 
@@ -106,7 +107,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
   var WORD_MATCH_MODES = Object.freeze(["word", "phrase", "exact"]);
   var DEFAULT_WORD_EFFECTS = Object.freeze([
     Object.freeze({ trigger: "Briar", effect: "confetti", match: "word", cooldown: 6e3, particles: 44, threshold: 1, window: 6e3, uniqueUsers: false }),
-    Object.freeze({ trigger: "GG", effect: "energy-wave", match: "word", cooldown: 8e3, particles: 0, threshold: 3, window: 6e3, uniqueUsers: true }),
+    Object.freeze({ trigger: "GG", effect: "energy-wave", match: "word", cooldown: 8e3, particles: 0, threshold: 3, window: 1e4, uniqueUsers: true }),
     Object.freeze({ trigger: "Hype", effect: "hype-pulse", match: "word", cooldown: 4e3, particles: 0, threshold: 1, window: 6e3, uniqueUsers: false }),
     Object.freeze({ trigger: "Boa noite", effect: "stars", match: "phrase", cooldown: 6e3, particles: 28, threshold: 1, window: 6e3, uniqueUsers: false }),
     Object.freeze({ trigger: "F", effect: "mono-rain", match: "exact", cooldown: 5e3, particles: 34, threshold: 1, window: 6e3, uniqueUsers: false })
@@ -374,8 +375,8 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     return output.length ? output : cloneWordEffects(fallback);
   }
   function asStreamerNames(value, fallback) {
-    if (!Array.isArray(value)) return Array.from(fallback);
-    const names = value.slice(0, 12).map((name) => asDisplayToken(name, 80).replace(/^@+/, "").trim()).filter(Boolean);
+    const source = Array.isArray(value) ? value : typeof value === "string" ? [value] : Array.from(fallback);
+    const names = source.slice(0, 12).map((name) => asDisplayToken(name, 80).replace(/^@+/, "").trim()).filter(Boolean);
     return Array.from(new Set(names.map((name) => name.toLocaleLowerCase("pt-BR"))));
   }
   function collectErrors(input) {
@@ -433,8 +434,8 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     if ("WORD_EFFECTS" in input && !Array.isArray(input.WORD_EFFECTS)) {
       add("WORD_EFFECTS", "invalid-array", "Os efeitos por palavra devem ser uma lista.");
     }
-    if ("STREAMER_NAMES" in input && !Array.isArray(input.STREAMER_NAMES)) {
-      add("STREAMER_NAMES", "invalid-array", "Os nomes do streamer devem ser uma lista.");
+    if ("STREAMER_NAMES" in input && !Array.isArray(input.STREAMER_NAMES) && typeof input.STREAMER_NAMES !== "string") {
+      add("STREAMER_NAMES", "invalid-value", "Use um nome entre aspas ou uma lista de nomes entre aspas.");
     }
     if ("VIEWER_COLOR_COMMAND" in input && asViewerColorCommand(input.VIEWER_COLOR_COMMAND, "") === "") {
       add("VIEWER_COLOR_COMMAND", "invalid-command", "O comando de cor deve comecar com ! e usar somente letras, numeros, _ ou -.");
@@ -936,6 +937,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     "data-notification-type"
   ]);
   var EXPLICIT_EVENT_CLASS_PATTERN = /^(?:(?:message|banner|special)-)?(?:event|alert|notification|activity)[-_:][a-z0-9_-]+$|^[a-z0-9_-]+[-_:](?:event|alert|notification|activity)$/i;
+  var PERSONCHAT_MANAGED_ROW_CLASS_PATTERN = /^(?:platform-|event-|msg-|personchat-|viewer-color-active$|streamer-message$|fadeoutup$)/i;
   function collectExplicitEventClasses(element) {
     return getClassTokens(element).filter((token) => EXPLICIT_EVENT_CLASS_PATTERN.test(token));
   }
@@ -943,7 +945,9 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     const values = [];
     const attrs = ["data-role", "data-roles", "data-user-role", "data-badge", "data-badges"];
     attrs.forEach((attr) => values.push(getAttribute(row, attr)));
-    values.push(getClassTokens(row).join(" "));
+    values.push(
+      getClassTokens(row).filter((token) => !PERSONCHAT_MANAGED_ROW_CLASS_PATTERN.test(token)).join(" ")
+    );
     if (badgesEl) {
       values.push(getClassTokens(badgesEl).join(" "));
       values.push(normalizeToken(badgesEl.textContent, 1e3));
@@ -1155,26 +1159,41 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     const palette = config.VIEWER_COLOR_PALETTE || DEFAULT_VIEWER_COLOR_PALETTE;
     let records = [];
     let dirty = false;
+    function normalizeIdentityNames(values) {
+      return Array.from(
+        new Set(
+          values.map((value) => canonicalInteractiveText(value).replace(/^@+/, "").slice(0, 100)).filter(Boolean)
+        )
+      ).slice(0, 6);
+    }
     function identityDescriptor(identity) {
       if (!identity) return null;
       const platform = normalizePlatform(identity.platform);
       const id = normalizeIdentifier(identity.id);
-      const name = canonicalInteractiveText(identity.normalizedName || identity.username || identity.displayName).replace(/^@+/, "").slice(0, 100);
-      if (!id && !name) return null;
-      return { platform, id, name };
+      const names = normalizeIdentityNames([
+        identity.displayName,
+        identity.username,
+        identity.normalizedName
+      ]);
+      if (!id && !names.length) return null;
+      return { platform, id, name: names[0] || "", names };
     }
     function normalizeRecord(value, referenceNow) {
       if (!isPlainRecord(value)) return null;
       const platform = normalizePlatform(value.platform);
       const id = normalizeIdentifier(value.id);
-      const name = canonicalInteractiveText(value.name).replace(/^@+/, "").slice(0, 100);
+      const names = normalizeIdentityNames([
+        value.name,
+        ...(Array.isArray(value.aliases) ? value.aliases.slice(0, 6) : [])
+      ]);
+      const name = names[0] || "";
       const color = normalizeViewerColorName(value.color);
       const ts = Number(value.ts);
       if ((!id && !name) || !Object.prototype.hasOwnProperty.call(palette, color) || !Number.isFinite(ts) || ts <= 0)
         return null;
       if (ts - referenceNow > 5 * 60 * 1e3 || referenceNow - ts >= config.VIEWER_COLOR_EXPIRY)
         return null;
-      return { platform, id, name, color, ts };
+      return { platform, id, name, aliases: names, color, ts };
     }
     function prune(referenceNow = now()) {
       const before = records.length;
@@ -1222,15 +1241,17 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         const byId = records.findIndex((record) => record.platform === descriptor.platform && record.id === descriptor.id);
         if (byId >= 0) return byId;
       }
-      if (descriptor.name) {
-        const compatibleId = (record) => !descriptor.id || !record.id || record.id === descriptor.id;
-        const byName = records.findIndex((record) => record.platform === descriptor.platform && record.name === descriptor.name && compatibleId(record));
+      if (descriptor.names.length) {
+        const compatibleId = (record) => descriptor.id ? !record.id || record.id === descriptor.id : !record.id;
+        const matchingAlias = (record) => {
+          const recordNames = normalizeIdentityNames([record.name, ...(record.aliases || [])]);
+          return descriptor.names.some((name) => recordNames.includes(name));
+        };
+        const byName = records.findIndex((record) => record.platform === descriptor.platform && matchingAlias(record) && compatibleId(record));
         if (byName >= 0) return byName;
         if (descriptor.platform !== "unknown") {
-          return records.findIndex((record) => record.platform === "unknown" && record.name === descriptor.name && compatibleId(record));
+          return records.findIndex((record) => record.platform === "unknown" && matchingAlias(record) && compatibleId(record));
         }
-        const matchingNames = records.map((record, index) => ({ record, index })).filter(({ record }) => record.name === descriptor.name && compatibleId(record));
-        if (matchingNames.length === 1) return matchingNames[0].index;
       }
       return -1;
     }
@@ -1246,23 +1267,8 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         flush();
         return "";
       }
-      let migrated = false;
-      if (record.platform === "unknown" && descriptor.platform !== "unknown") {
-        record.platform = descriptor.platform;
-        migrated = true;
-      }
-      if (descriptor.id && record.id !== descriptor.id) {
-        record.id = descriptor.id;
-        migrated = true;
-      }
-      if (descriptor.name && record.name !== descriptor.name) {
-        record.name = descriptor.name;
-        migrated = true;
-      }
-      if (migrated) {
-        dirty = true;
-        flush();
-      }
+      // Leituras nunca reivindicam um registro provisório por nome. A migração
+      // para plataforma/ID ocorre somente em set(), após o evento correlacionado.
       return record.color;
     }
     function set(identity, colorName) {
@@ -1271,10 +1277,11 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       if (!descriptor || !Object.prototype.hasOwnProperty.call(palette, color)) return false;
       const timestamp = now();
       const index = findIndex(descriptor);
-      const record = index >= 0 ? records[index] : { platform: descriptor.platform, id: descriptor.id, name: descriptor.name, color, ts: timestamp };
+      const record = index >= 0 ? records[index] : { platform: descriptor.platform, id: descriptor.id, name: descriptor.name, aliases: descriptor.names, color, ts: timestamp };
       record.platform = descriptor.platform === "unknown" ? record.platform : descriptor.platform;
       record.id = descriptor.id || record.id || "";
       record.name = descriptor.name || record.name || "";
+      record.aliases = normalizeIdentityNames([record.name, ...(record.aliases || []), ...descriptor.names]);
       record.color = color;
       record.ts = timestamp;
       if (index < 0) records.push(record);
@@ -1295,8 +1302,10 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       const before = records.length;
       records = records.filter((record) => {
         if (descriptor.id && record.platform === descriptor.platform && record.id === descriptor.id) return false;
-        const compatibleNameRecord = !descriptor.id || !record.id || record.id === descriptor.id;
-        if (descriptor.name && compatibleNameRecord && record.name === descriptor.name && (record.platform === descriptor.platform || record.platform === "unknown")) return false;
+        const compatibleNameRecord = descriptor.id ? !record.id || record.id === descriptor.id : !record.id;
+        const recordNames = normalizeIdentityNames([record.name, ...(record.aliases || [])]);
+        const matchingAlias = descriptor.names.some((name) => recordNames.includes(name));
+        if (matchingAlias && compatibleNameRecord && (record.platform === descriptor.platform || record.platform === "unknown")) return false;
         return true;
       });
       if (records.length === before) return true;
@@ -1997,6 +2006,23 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     copy.querySelectorAll(".emote, .emoji, img, br, [data-personchat-repeat-count]").forEach((node) => node.remove());
     return String(copy.textContent || "").replace(/[\s\u200B-\u200D\uFEFF]+/gu, "") === "";
   }
+  function getInteractiveMessageText(messageElement) {
+    if (!messageElement) return "";
+    const copy = messageElement.cloneNode(true);
+    copy.querySelectorAll("[data-personchat-repeat-count], .embedded-image-container").forEach((node) => node.remove());
+    const replaceWithLabel = (node) => {
+      const nestedImage = node.querySelector && node.querySelector("img[alt], img[data-name], img[aria-label], img[title]");
+      const label = normalizeToken(
+        node.getAttribute("alt") || node.getAttribute("data-name") || node.getAttribute("aria-label") || node.getAttribute("title") || nestedImage && (nestedImage.getAttribute("alt") || nestedImage.getAttribute("data-name") || nestedImage.getAttribute("aria-label") || nestedImage.getAttribute("title")) || node.textContent,
+        100
+      );
+      const replacement = copy.ownerDocument.createTextNode(label ? " " + label + " " : " ");
+      if (node.parentNode) node.parentNode.replaceChild(replacement, node);
+    };
+    copy.querySelectorAll(".emote, .emoji").forEach(replaceWithLabel);
+    copy.querySelectorAll("img[alt], img[data-name], img[aria-label], img[title]").forEach(replaceWithLabel);
+    return String(copy.textContent || "").replace(/[\s\u200B-\u200D\uFEFF]+/gu, " ").trim();
+  }
   function createEffectsEngine(options) {
     const { documentRef, windowRef, config, timers, now, log } = options;
     const createdNodes = [];
@@ -2492,7 +2518,8 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
   function rowIsReady(row) {
     if (!row || row.dataset.processed === "1") return false;
     const message = row.querySelector(".user-message");
-    if (!message || /^\s*\{message\}\s*$/.test(message.innerHTML)) return false;
+    const messageMarkup = message && String(message.innerHTML || "").trim();
+    if (!message || !messageMarkup || /^\s*\{message\}\s*$/.test(messageMarkup)) return false;
     const rawNames = [
       row.getAttribute("data-from"),
       row.getAttribute("data-username"),
@@ -2570,6 +2597,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     const avatarFetchCancellations = /* @__PURE__ */ new Set();
     const avatarPreloads = /* @__PURE__ */ new Set();
     const pendingStreamlabsMetadata = /* @__PURE__ */ new Map();
+    const pendingViewerColorCommands = /* @__PURE__ */ new Map();
     const hideTimers = /* @__PURE__ */ new Map();
     const mentionTimers = /* @__PURE__ */ new Map();
     const effectCooldowns = /* @__PURE__ */ new Map();
@@ -2577,6 +2605,29 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     const activityTimestamps = [];
     const repeatedGroups = /* @__PURE__ */ new Map();
     const streamerNames = /* @__PURE__ */ new Set(config.STREAMER_NAMES.map(canonicalInteractiveText).filter(Boolean));
+    function rememberSessionIdentity(key) {
+      if (!key) return;
+      sessionSeen.delete(key);
+      sessionSeen.add(key);
+      while (sessionSeen.size > 5e3) sessionSeen.delete(sessionSeen.values().next().value);
+    }
+    function isAvatarFetchCoolingDown(key) {
+      const expiresAt = negativeAvatarFetches.get(key) || 0;
+      if (expiresAt > now()) return true;
+      if (expiresAt) negativeAvatarFetches.delete(key);
+      return false;
+    }
+    function rememberAvatarFetchFailure(key) {
+      const timestamp = now();
+      negativeAvatarFetches.forEach((expiresAt, storedKey) => {
+        if (expiresAt <= timestamp) negativeAvatarFetches.delete(storedKey);
+      });
+      negativeAvatarFetches.delete(key);
+      negativeAvatarFetches.set(key, timestamp + config.AVATAR_FAILURE_COOLDOWN);
+      while (negativeAvatarFetches.size > 2e3) {
+        negativeAvatarFetches.delete(negativeAvatarFetches.keys().next().value);
+      }
+    }
     function applySettings() {
       Array.from(log.classList).filter((token) => token.startsWith("theme-")).forEach((token) => log.classList.remove(token));
       Array.from(log.classList).filter((token) => token.startsWith("motion-") || token.startsWith("text-effect-")).forEach((token) => log.classList.remove(token));
@@ -2623,8 +2674,6 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       const configuredStreamer = aliases.some((alias) => streamerNames.has(alias));
       const isStreamer = detectedBroadcaster || configuredStreamer;
       if (!isStreamer) return false;
-      if (!roles.includes("broadcaster")) roles.unshift("broadcaster");
-      row.classList.add("role-broadcaster");
       if (config.STREAMER_HIGHLIGHT_ENABLED) row.classList.add("streamer-message");
       return true;
     }
@@ -2671,7 +2720,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       clearViewerColor(row);
       if (!config.VIEWER_COLORS_ENABLED) return "";
       const protectedRole = roles.some((role) => ["broadcaster", "moderator", "raider", "staff"].includes(role));
-      const protectedState = events.length > 0 || row.classList.contains("msg-first-message") || row.classList.contains("msg-session-first");
+      const protectedState = events.length > 0 || row.classList.contains("streamer-message") || row.classList.contains("msg-first-message") || row.classList.contains("msg-session-first");
       if (protectedRole || protectedState) return "";
       const colorName = viewerColorStore.get(identity);
       const paletteEntry = config.VIEWER_COLOR_PALETTE[colorName];
@@ -2702,6 +2751,52 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         if (effectsEngine) effectsEngine.setClimax(false);
       }, config.CLIMAX_DURATION);
     }
+    function effectIdentityDescriptor(identity) {
+      return {
+        platform: normalizePlatform(identity && identity.platform),
+        id: normalizeIdentifier(identity && identity.id),
+        names: identityAliases(identity)
+      };
+    }
+    function isSameEffectParticipant(left, right) {
+      if (!left || !right) return false;
+      if (left.platform !== "unknown" && right.platform !== "unknown" && left.platform !== right.platform) return false;
+      if (left.id && right.id) return left.id === right.id;
+      return left.names.some((name) => right.names.includes(name));
+    }
+    function setGgCharge(row, count, threshold, duration) {
+      if (!row) return;
+      const safeCount = Math.max(1, Math.min(threshold, count));
+      const safeDuration = Math.max(500, Number(duration) || 1e4);
+      row.classList.add("msg-gg-charge");
+      row.classList.toggle("msg-gg-wave-ready", safeCount >= threshold);
+      row.dataset.personchatGgCharge = safeCount + "/" + threshold;
+      row.dataset.personchatGgWindow = String(safeDuration);
+      const decorators = row.querySelector(".message-decorators");
+      if (decorators) {
+        let badge = decorators.querySelector("[data-personchat-gg-charge]");
+        if (!badge) {
+          badge = documentRef.createElement("div");
+          badge.className = "special-banner gg-charge-badge";
+          badge.dataset.personchatGgCharge = "1";
+          decorators.appendChild(badge);
+        }
+        badge.textContent = "GG " + safeCount + "/" + threshold;
+      }
+      const state = rowStates.get(row) || {};
+      if (state.ggChargeTimer != null) timers.clear(state.ggChargeTimer);
+      const signature = row.dataset.personchatGgCharge;
+      state.ggChargeTimer = timers.set(() => {
+        const currentState = rowStates.get(row);
+        if (currentState) currentState.ggChargeTimer = null;
+        if (row.dataset.personchatGgCharge !== signature) return;
+        row.classList.remove("msg-gg-charge", "msg-gg-wave-ready");
+        delete row.dataset.personchatGgCharge;
+        delete row.dataset.personchatGgWindow;
+        row.querySelector("[data-personchat-gg-charge]")?.remove();
+      }, safeDuration);
+      rowStates.set(row, state);
+    }
     function processWordEffects(messageText, identity, row) {
       if (!config.WORD_EFFECTS_ENABLED || !effectsEngine || !messageText) return 0;
       let triggered = 0;
@@ -2712,14 +2807,15 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         if (rule.threshold > 1) {
           const previousHits = effectWindows.get(effectKey) || [];
           const hits = previousHits.filter((hit) => timestamp - hit.timestamp <= rule.window);
-          const userKey = identity && identity.key || "anonymous";
-          if (!rule.uniqueUsers || !hits.some((hit) => hit.userKey === userKey)) {
-            hits.push({ timestamp, userKey });
+          const participant = effectIdentityDescriptor(identity);
+          if (!rule.uniqueUsers || !hits.some((hit) => isSameEffectParticipant(hit.participant, participant))) {
+            hits.push({ timestamp, participant });
           }
           const maxHits = Math.max(20, rule.threshold);
           if (hits.length > maxHits) hits.splice(0, hits.length - maxHits);
           effectWindows.set(effectKey, hits);
-          const count = rule.uniqueUsers ? new Set(hits.map((hit) => hit.userKey)).size : hits.length;
+          const count = hits.length;
+          if (rule.effect === "energy-wave") setGgCharge(row, count, rule.threshold, rule.window);
           if (count < rule.threshold) continue;
         }
         if (triggered >= config.EFFECTS_MAX_PER_MESSAGE) continue;
@@ -2785,6 +2881,11 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         if (documentRef.documentElement.contains(badge)) badge.classList.add("is-updated");
       }, 16);
       entry.row.classList.add("msg-repeat-group");
+      if (row.dataset.personchatGgCharge) {
+        const [count, threshold] = row.dataset.personchatGgCharge.split("/").map(Number);
+        const duration = Number(row.dataset.personchatGgWindow);
+        if (Number.isFinite(count) && Number.isFinite(threshold)) setGgCharge(entry.row, count, threshold, duration);
+      }
       if (config.HIDE_AFTER > 0) {
         clearRowTimer(entry.row);
         const timer = setTimer(() => {
@@ -2799,18 +2900,18 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     function processInteractiveMessage(row, originalMessageText, metadata, processOptions) {
       const state = rowStates.get(row) || {};
       if (state.interactiveProcessed) return false;
-      state.interactiveProcessed = true;
-      rowStates.set(row, state);
       const isStreamer = Boolean(metadata.isStreamer);
-      if (isStreamer) metadata.hasSpecialState = true;
+      if (isStreamer && row.classList.contains("streamer-message")) metadata.hasSpecialState = true;
       if (config.EMOTE_ONLY_MODE && isEmoteOnlyMessage(metadata.messageElement)) {
         row.classList.add("msg-emote-only");
         metadata.hasSpecialState = true;
       }
-      const historical = Boolean(processOptions.historical);
+      const historical = Boolean(processOptions.historical || state.historical);
       const isCommand = String(originalMessageText || "").trim().startsWith("!");
       const isVisible = !row.hidden && !row.classList.contains("personchat-platform-filtered") && !row.classList.contains("deleted");
-      if (historical || isCommand || !isVisible) return false;
+      if (historical || isCommand || !isVisible || !originalMessageText) return false;
+      state.interactiveProcessed = true;
+      rowStates.set(row, state);
       if (config.STREAMER_MENTION_ENABLED && !isStreamer && messageMentionsStreamer(originalMessageText, metadata.reply)) {
         addStreamerMention(row);
         metadata.hasSpecialState = true;
@@ -2852,10 +2953,11 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         lastVisibleMessage = { row, userKey, timestamp: now() };
       }
     }
-    function preloadAvatar(avatarElement, url, fallback, userKey, version = lifecycleVersion) {
-      if (destroyed || version !== lifecycleVersion) return;
+    function preloadAvatar(avatarElement, url, fallback, userKey, version = lifecycleVersion, isCurrent = null) {
+      const canApply = () => !destroyed && version === lifecycleVersion && documentRef.documentElement.contains(avatarElement) && (typeof isCurrent !== "function" || isCurrent());
+      if (!canApply()) return;
       if (!url || typeof ImageCtor !== "function") {
-        avatarElement.src = url || fallback;
+        if (canApply()) avatarElement.src = url || fallback;
         return;
       }
       const image = new ImageCtor();
@@ -2866,27 +2968,22 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         image.onload = null;
         image.onerror = null;
         image.src = "";
-        if (destroyed || version !== lifecycleVersion) return;
+        if (!canApply()) return;
         avatarStore.delete(userKey);
-        if (documentRef.documentElement.contains(avatarElement)) {
-          avatarElement.src = fallback;
-        }
+        avatarElement.src = fallback;
       }, config.AVATAR_FETCH_TIMEOUT);
       preload.timeout = timeout;
       image.onload = () => {
         avatarPreloads.delete(preload);
         timers.clear(timeout);
-        if (!destroyed && version === lifecycleVersion && documentRef.documentElement.contains(avatarElement))
-          avatarElement.src = url;
+        if (canApply()) avatarElement.src = url;
       };
       image.onerror = () => {
         avatarPreloads.delete(preload);
         timers.clear(timeout);
-        if (destroyed || version !== lifecycleVersion) return;
+        if (!canApply()) return;
         avatarStore.delete(userKey);
-        if (documentRef.documentElement.contains(avatarElement)) {
-          avatarElement.src = fallback;
-        }
+        avatarElement.src = fallback;
       };
       image.src = url;
     }
@@ -2929,7 +3026,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       if (identity.platform === "kick" && !config.FETCH_KICK_AVATAR) {
         return Promise.resolve("");
       }
-      if ((negativeAvatarFetches.get(identity.key) || 0) > now()) return Promise.resolve("");
+      if (isAvatarFetchCoolingDown(identity.key)) return Promise.resolve("");
       if (pendingAvatarFetches.has(identity.key)) {
         return pendingAvatarFetches.get(identity.key);
       }
@@ -2952,33 +3049,37 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         const validUrl = isPublicHttpUrl(avatarUrl, config.AVATAR_MAX_URL_LENGTH) ? avatarUrl : "";
         if (validUrl) negativeAvatarFetches.delete(identity.key);
         else
-          negativeAvatarFetches.set(identity.key, now() + config.AVATAR_FAILURE_COOLDOWN);
+          rememberAvatarFetchFailure(identity.key);
         return validUrl;
       }).finally(() => pendingAvatarFetches.delete(identity.key));
       pendingAvatarFetches.set(identity.key, request);
       return request;
     }
-    function applyAvatar(row, identity, userColor) {
+    function applyAvatar(row, identity, userColor, generation) {
       const avatarElement = row.querySelector(".avatar");
       if (!avatarElement) return;
+      const isCurrent = () => {
+        const state = rowStates.get(row);
+        return Boolean(state && state.avatarGeneration === generation && state.identityKey === identity.key);
+      };
       const rawAvatar = getRawAvatar(row, config);
       const fallback = generateInitialsAvatar(identity.displayName, userColor);
-      avatarElement.src = fallback;
+      if (isCurrent()) avatarElement.src = fallback;
       const version = lifecycleVersion;
       if (rawAvatar) {
-        preloadAvatar(avatarElement, rawAvatar, fallback, identity.key, version);
+        preloadAvatar(avatarElement, rawAvatar, fallback, identity.key, version, isCurrent);
         avatarStore.set(identity.key, rawAvatar);
         return;
       }
       const cached = avatarStore.get(identity.key);
       if (cached) {
-        preloadAvatar(avatarElement, cached, fallback, identity.key, version);
+        preloadAvatar(avatarElement, cached, fallback, identity.key, version, isCurrent);
         return;
       }
       requestPlatformAvatar(identity, row).then((url) => {
-        if (!url || destroyed || version !== lifecycleVersion) return;
+        if (!url || destroyed || version !== lifecycleVersion || !isCurrent()) return;
         avatarStore.set(identity.key, url);
-        preloadAvatar(avatarElement, url, fallback, identity.key, version);
+        preloadAvatar(avatarElement, url, fallback, identity.key, version, isCurrent);
       }).catch((error) => report2(debug, "avatar-fetch-failed", { key: identity.key }, error));
     }
     function getFirstMessageKind(row, identity, historical) {
@@ -2992,7 +3093,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       } else if (!historical && supportsSession && radarReady && !sessionSeen.has(identity.key)) {
         kind = "session";
       }
-      sessionSeen.add(identity.key);
+      rememberSessionIdentity(identity.key);
       return kind;
     }
     function findRowByMessageId(messageId) {
@@ -3029,12 +3130,57 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         pendingStreamlabsMetadata.delete(oldest);
       }
     }
+    function rememberPendingViewerColorCommand(row, identity, colorCommand) {
+      const messageId = normalizeToken(row && row.getAttribute("data-id"), 256);
+      if (!messageId || !identity || !["set", "reset"].includes(colorCommand.action)) return;
+      const timestamp = now();
+      pendingViewerColorCommands.set(messageId, {
+        action: colorCommand.action,
+        color: colorCommand.color,
+        identity: Object.assign({}, identity),
+        timestamp
+      });
+      pendingViewerColorCommands.forEach((entry, key) => {
+        if (!entry || timestamp - entry.timestamp > 3e4) pendingViewerColorCommands.delete(key);
+      });
+      while (pendingViewerColorCommands.size > 100) {
+        pendingViewerColorCommands.delete(pendingViewerColorCommands.keys().next().value);
+      }
+    }
+    function consumePendingViewerColorCommand(messageId, attributes) {
+      const pending = pendingViewerColorCommands.get(messageId);
+      if (!pending) return false;
+      if (now() - pending.timestamp > 3e4) {
+        pendingViewerColorCommands.delete(messageId);
+        return true;
+      }
+      const probe = documentRef.createElement("div");
+      if (pending.identity.displayName) probe.setAttribute("data-from", pending.identity.displayName);
+      if (pending.identity.username) probe.setAttribute("data-username", pending.identity.username);
+      applyStreamlabsMetadata(probe, attributes);
+      const hydratedIdentity = getUserIdentity(probe, getPlatform(probe));
+      const pendingAliases = identityAliases(pending.identity);
+      const hydratedAliases = identityAliases(hydratedIdentity);
+      if (pendingAliases.length && hydratedAliases.length && !pendingAliases.some((name) => hydratedAliases.includes(name))) {
+        return false;
+      }
+      pendingViewerColorCommands.delete(messageId);
+      if (pending.action === "set") {
+        viewerColorStore.remove(pending.identity);
+        viewerColorStore.set(hydratedIdentity, pending.color);
+      } else {
+        viewerColorStore.remove(pending.identity);
+        viewerColorStore.remove(hydratedIdentity);
+      }
+      return true;
+    }
     function onStreamlabsEvent(event) {
       if (destroyed) return;
       const metadata = extractStreamlabsMetadata(event);
       if (!metadata) return;
       const row = findRowByMessageId(metadata.messageId);
       if (!row) {
+        if (consumePendingViewerColorCommand(metadata.messageId, metadata.attributes)) return;
         cacheStreamlabsMetadata(metadata.messageId, metadata.attributes);
         return;
       }
@@ -3067,7 +3213,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       const identity = getUserIdentity(row, platform);
       const messageElement = row.querySelector(".user-message");
       if (!messageElement) return null;
-      const messageText = String(messageElement.textContent || "").trim();
+      const messageText = getInteractiveMessageText(messageElement);
       syncPlatform(row, platform);
       row.dataset.userKeySource = identity.keySource;
       const badgesElement = row.querySelector(".badges");
@@ -3103,17 +3249,21 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       const rawAvatar = getRawAvatar(row, config);
       const avatarSignature = identity.key + "\n" + rawAvatar;
       if (config.SHOW_USER_AVATAR && state.avatarSignature !== avatarSignature) {
-        applyAvatar(row, identity, userColor);
         state.avatarSignature = avatarSignature;
+        state.avatarGeneration = (state.avatarGeneration || 0) + 1;
+        state.identityKey = identity.key;
+        rowStates.set(row, state);
+        applyAvatar(row, identity, userColor, state.avatarGeneration);
       } else if (!config.SHOW_USER_AVATAR) {
         state.avatarSignature = "avatar-disabled";
+        state.avatarGeneration = (state.avatarGeneration || 0) + 1;
       }
       let firstKind = "";
       if (processOptions.initial) {
         firstKind = getFirstMessageKind(row, identity, Boolean(processOptions.historical));
         if (firstKind) addFirstMessageBanner(row, firstKind);
       } else {
-        sessionSeen.add(identity.key);
+        rememberSessionIdentity(identity.key);
         const nativeMode = config.FIRST_MESSAGE_MODE === "native-only" || config.FIRST_MESSAGE_MODE === "native-or-session";
         if (!state.historical && nativeMode && getNativeFirstFlag(row) === true) {
           addFirstMessageBanner(row, "native");
@@ -3125,8 +3275,9 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
         removeReplyMentionFromMessage(messageElement, reply.target);
       }
       applyViewerColor(row, identity, roles, events);
+      const hasStreamerSpecialState = roles.includes("broadcaster") || row.classList.contains("streamer-message");
       const hasSpecialState = Boolean(
-        isStreamer || firstKind || reply.target || events.length || row.classList.contains("msg-first-message") || row.classList.contains("msg-session-first")
+        hasStreamerSpecialState || firstKind || reply.target || events.length || row.classList.contains("msg-first-message") || row.classList.contains("msg-session-first")
       );
       if (!processOptions.initial && hasSpecialState) row.classList.remove("msg-compact-chain");
       if (lastVisibleMessage && lastVisibleMessage.row === row) {
@@ -3142,7 +3293,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       row.dataset.processed = "1";
       hydratePendingStreamlabsMetadata(row);
       const messageElement = row.querySelector(".user-message");
-      const messageText = String(messageElement.textContent || "").trim();
+      const messageText = getInteractiveMessageText(messageElement);
       const colorCommand = parseViewerColorCommand(messageText, config.VIEWER_COLOR_COMMAND);
       if (colorCommand && colorCommand.matched) {
         if (!processOptions.historical && config.VIEWER_COLORS_ENABLED) {
@@ -3150,8 +3301,10 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
           const identity = getUserIdentity(row, platform);
           if (colorCommand.action === "set" && Object.prototype.hasOwnProperty.call(config.VIEWER_COLOR_PALETTE, colorCommand.color)) {
             viewerColorStore.set(identity, colorCommand.color);
+            rememberPendingViewerColorCommand(row, identity, colorCommand);
           } else if (colorCommand.action === "reset") {
             viewerColorStore.remove(identity);
+            rememberPendingViewerColorCommand(row, identity, colorCommand);
           }
         }
         row.remove();
@@ -3210,8 +3363,13 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       queuedRefreshRows.add(row);
       queueTask(() => {
         queuedRefreshRows.delete(row);
-        if (!destroyed && version === lifecycleVersion && documentRef.documentElement.contains(row))
-          updateRowMetadata(row);
+        if (destroyed || version !== lifecycleVersion || !documentRef.documentElement.contains(row)) return;
+        const metadata = updateRowMetadata(row);
+        if (!metadata) return;
+        const messageText = getInteractiveMessageText(metadata.messageElement);
+        processInteractiveMessage(row, messageText, metadata, {
+          historical: Boolean((rowStates.get(row) || {}).historical)
+        });
       });
     }
     function rowsFromNode(node) {
@@ -3224,6 +3382,8 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
     function clearRemovedRows(node) {
       rowsFromNode(node).forEach((row) => {
         clearRowTimer(row);
+        const state = rowStates.get(row);
+        if (state && state.ggChargeTimer != null) timers.clear(state.ggChargeTimer);
         const mentionTimer = mentionTimers.get(row);
         if (mentionTimer != null) timers.clear(mentionTimer);
         mentionTimers.delete(row);
@@ -3262,7 +3422,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
           const messageElement = row.querySelector(".user-message");
           row.classList.toggle("msg-emote-only", isEmoteOnlyMessage(messageElement));
         }
-        if (mutation.type === "attributes" || touchesBadges) queueRefreshRow(row);
+        if (mutation.type === "attributes" || touchesBadges || touchesMessage) queueRefreshRow(row);
       });
     }
     function flush() {
@@ -3284,6 +3444,14 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       applySettings();
       documentRef.addEventListener("onEventReceived", onStreamlabsEvent);
       log.querySelectorAll(".message-row").forEach((row) => {
+        row.removeAttribute("data-processed");
+        row.classList.remove("msg-gg-charge", "msg-gg-wave-ready", "msg-streamer-mention", "msg-streamer-mention-active");
+        delete row.dataset.personchatEffect;
+        delete row.dataset.personchatGgCharge;
+        delete row.dataset.personchatGgWindow;
+        row.querySelector("[data-personchat-gg-charge]")?.remove();
+        row.querySelector("[data-personchat-streamer-mention]")?.remove();
+        rowStates.set(row, { historical: true });
         processRow(row, { historical: true });
       });
       if (!radarReady) {
@@ -3334,6 +3502,7 @@ globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
       pendingAvatarFetches.clear();
       negativeAvatarFetches.clear();
       pendingStreamlabsMetadata.clear();
+      pendingViewerColorCommands.clear();
       effectCooldowns.clear();
       effectWindows.clear();
       activityTimestamps.splice(0);

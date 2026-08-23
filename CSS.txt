@@ -1,4 +1,4 @@
-/* PersonChat v7.4.0 | Streamlabs Chat Box */
+/* PersonChat v7.5.0 | Streamlabs Chat Box */
 
 /* stylelint-disable no-descending-specificity -- Estados interativos sobrescrevem intencionalmente os seletores-base. */
 
@@ -154,6 +154,18 @@
     100% {
         opacity: 0;
         transform: translate(-50%, -50%) scale(5.2);
+    }
+}
+
+@keyframes ggChargePulse {
+    0%, 100% {
+        box-shadow: 0 0 8px rgba(34,211,238,0.35);
+        transform: translateY(0);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(139,92,246,0.62);
+        transform: translateY(-1px);
     }
 }
 
@@ -542,6 +554,24 @@ body {
     white-space: nowrap;
 }
 
+.gg-charge-badge {
+    min-width: 58px;
+    justify-content: center;
+    background: linear-gradient(110deg, #0e7490, #6d28d9);
+    border: 1px solid rgba(125,249,255,0.7);
+    letter-spacing: 0.04em;
+    animation: ggChargePulse 1.15s ease-in-out infinite;
+}
+
+.msg-gg-charge .user-message {
+    border-color: rgba(34,211,238,0.58);
+}
+
+.msg-gg-wave-ready .gg-charge-badge {
+    background: linear-gradient(110deg, #047857, #0e7490, #6d28d9);
+    border-color: #a5f3fc;
+}
+
 .banner-first {
     background: linear-gradient(90deg, #b8860b, #daa520);
     color: #4a2c00;
@@ -683,7 +713,7 @@ body {
 .role-pill-broadcaster { background: #b91c1c; }
 .role-pill-staff { background: #1d4ed8; }
 
-#log.role-gradients-enabled .role-broadcaster .message-header {
+#log.role-gradients-enabled :is(.role-broadcaster, .streamer-message) .message-header {
     background: linear-gradient(120deg, #dc2626, #be185d, #7c3aed, #b45309, #dc2626);
     background-size: 300% 300%;
     animation: roleGradientWave 5.2s ease-in-out infinite;
@@ -691,7 +721,7 @@ body {
     --row-accent: #fbbf24;
 }
 
-#log.role-gradients-enabled .role-moderator:not(.role-broadcaster) .message-header {
+#log.role-gradients-enabled .role-moderator:not(.role-broadcaster, .streamer-message) .message-header {
     background: linear-gradient(120deg, #047857, #0f766e, #0e7490, #047857);
     background-size: 280% 280%;
     animation: roleGradientWave 5.8s ease-in-out infinite;
@@ -699,7 +729,7 @@ body {
     --row-accent: #5eead4;
 }
 
-#log.role-gradients-enabled .role-raider:not(.role-broadcaster, .role-moderator) .message-header {
+#log.role-gradients-enabled .role-raider:not(.role-broadcaster, .role-moderator, .streamer-message) .message-header {
     background: linear-gradient(120deg, #6d28d9, #c026d3, #2563eb, #6d28d9);
     background-size: 280% 280%;
     animation: roleGradientWave 4.8s ease-in-out infinite;
@@ -707,24 +737,24 @@ body {
     --row-accent: #c4b5fd;
 }
 
-#log.role-gradients-enabled .role-broadcaster .avatar {
+#log.role-gradients-enabled :is(.role-broadcaster, .streamer-message) .avatar {
     box-shadow: 0 0 0 3px #fbbf24, 0 0 16px rgba(219,39,119,0.72), 0 4px 10px rgba(0,0,0,0.3);
 }
 
-#log.role-gradients-enabled .role-moderator:not(.role-broadcaster) .avatar {
+#log.role-gradients-enabled .role-moderator:not(.role-broadcaster, .streamer-message) .avatar {
     box-shadow: 0 0 0 3px #2dd4bf, 0 0 13px rgba(34,211,238,0.55), 0 4px 10px rgba(0,0,0,0.3);
 }
 
-#log.role-gradients-enabled .role-raider:not(.role-broadcaster, .role-moderator) .avatar {
+#log.role-gradients-enabled .role-raider:not(.role-broadcaster, .role-moderator, .streamer-message) .avatar {
     box-shadow: 0 0 0 3px #a78bfa, 0 0 13px rgba(192,38,211,0.58), 0 4px 10px rgba(0,0,0,0.3);
 }
 
-#log.role-gradients-enabled :is(.role-broadcaster, .role-moderator, .role-raider) :is(.chat-time, .user-name) {
+#log.role-gradients-enabled :is(.role-broadcaster, .streamer-message, .role-moderator, .role-raider) :is(.chat-time, .user-name) {
     color: #ffffff !important;
     text-shadow: 0 1px 3px rgba(0,0,0,0.48);
 }
 
-#log.viewer-colors-enabled .message-row.viewer-color-active:not(:is(.role-broadcaster, .role-moderator, .role-raider, .role-staff, .event-superchat, .event-donation, .event-raid, .event-sub, .event-follow, .msg-first-message, .msg-session-first)) .message-header {
+#log.viewer-colors-enabled .message-row.viewer-color-active:not(:is(.role-broadcaster, .streamer-message, .role-moderator, .role-raider, .role-staff, .event-superchat, .event-donation, .event-raid, .event-sub, .event-follow, .msg-first-message, .msg-session-first)) .message-header {
     --row-accent: var(--viewer-color-accent);
     --row-accent-text: var(--viewer-color-text);
 
@@ -732,11 +762,11 @@ body {
     box-shadow: 0 4px 8px rgba(0,0,0,0.24), inset 0 0 0 1px var(--viewer-color-accent);
 }
 
-#log.viewer-colors-enabled .message-row.viewer-color-active:not(:is(.role-broadcaster, .role-moderator, .role-raider, .role-staff, .event-superchat, .event-donation, .event-raid, .event-sub, .event-follow, .msg-first-message, .msg-session-first)) .avatar {
+#log.viewer-colors-enabled .message-row.viewer-color-active:not(:is(.role-broadcaster, .streamer-message, .role-moderator, .role-raider, .role-staff, .event-superchat, .event-donation, .event-raid, .event-sub, .event-follow, .msg-first-message, .msg-session-first)) .avatar {
     box-shadow: 0 0 0 3px var(--viewer-color-accent), 0 4px 10px rgba(0,0,0,0.3);
 }
 
-#log.viewer-colors-enabled .message-row.viewer-color-active:not(:is(.role-broadcaster, .role-moderator, .role-raider, .role-staff, .event-superchat, .event-donation, .event-raid, .event-sub, .event-follow, .msg-first-message, .msg-session-first)) :is(.chat-time, .user-name) {
+#log.viewer-colors-enabled .message-row.viewer-color-active:not(:is(.role-broadcaster, .streamer-message, .role-moderator, .role-raider, .role-staff, .event-superchat, .event-donation, .event-raid, .event-sub, .event-follow, .msg-first-message, .msg-session-first)) :is(.chat-time, .user-name) {
     color: var(--viewer-color-text) !important;
     text-shadow: 0 1px 3px rgba(0,0,0,0.42);
 }

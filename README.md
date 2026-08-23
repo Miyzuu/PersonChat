@@ -1,4 +1,4 @@
-# PersonChat v7.4.0 — Caixa de Chat Interativa para Streamlabs
+# PersonChat v7.5.0 — Caixa de Chat Interativa para Streamlabs
 
 Tema de chat moderno e responsivo para Twitch, YouTube e Kick, desenvolvido especificamente para a **Caixa de chat nativa da Streamlabs**.
 
@@ -131,9 +131,9 @@ Com **VIEWER_COLORS_ENABLED** ativado, cada pessoa pode escolher o degradê do p
 !cor reset
 ```
 
-As preferências ficam no armazenamento local do widget por 30 dias, com limite padrão de 1.000 usuários. O sistema mantém Twitch, YouTube e Kick separados e migra a preferência quando o ID da pessoa chega depois da mensagem.
+As preferências ficam no armazenamento local do widget por 30 dias, com limite padrão de 1.000 usuários. O sistema mantém Twitch, YouTube e Kick separados e reconhece nome exibido, login e ID mesmo quando esses metadados chegam em momentos diferentes.
 
-Por segurança, o público só pode usar os nomes existentes em **VIEWER_COLOR_PALETTE**. Códigos CSS, URLs e cores arbitrárias enviados pelo chat são ignorados. Streamer, moderador, raider, staff, eventos e primeiras mensagens continuam tendo prioridade visual sobre a cor pessoal.
+Por segurança, o público só pode usar os nomes existentes em **VIEWER_COLOR_PALETTE**. Códigos CSS, URLs e cores arbitrárias enviados pelo chat são ignorados. Broadcaster real, moderador, raider, staff, eventos, primeiras mensagens e o destaque habilitado do streamer continuam tendo prioridade visual sobre a cor pessoal.
 
 O streamer pode trocar o comando em **VIEWER_COLOR_COMMAND**, desativar o recurso ou editar os valores hexadecimais seguros da paleta no início de **JS.txt**. Nenhum Campo personalizado é necessário.
 
@@ -160,31 +160,37 @@ Cada regra de **WORD_EFFECTS** possui:
 - **particles** — quantidade de partículas, quando aplicável;
 - **threshold**, **window** e **uniqueUsers** — usados em efeitos coletivos como o combo de GG.
 
-O efeito de **GG** exige três usuários diferentes dentro de seis segundos. Mensagens antigas, comandos e atualizações tardias de badges não disparam efeitos.
+O efeito de **GG** exige três usuários diferentes dentro de dez segundos. Cada GG válido mostra a carga `GG 1/3`, `GG 2/3` e `GG 3/3`; no terceiro, a onda atravessa o chat. A carga desaparece quando a janela vence. Um único usuário repetindo GG não completa o combo. O matcher também reconhece GG recebido como emote. Mensagens antigas e comandos não disparam efeitos.
+
+Se o sistema operacional estiver configurado para reduzir movimento, o contador continua visível, mas a onda animada é substituída pelo estado estático por acessibilidade.
 
 Configuração padrão:
 
 ```js
 "WORD_EFFECTS": [
     { "trigger": "Briar", "effect": "confetti", "match": "word", "cooldown": 6000, "particles": 44 },
-    { "trigger": "GG", "effect": "energy-wave", "match": "word", "cooldown": 8000, "threshold": 3, "window": 6000, "uniqueUsers": true },
+    { "trigger": "GG", "effect": "energy-wave", "match": "word", "cooldown": 8000, "threshold": 3, "window": 10000, "uniqueUsers": true },
     { "trigger": "Hype", "effect": "hype-pulse", "match": "word", "cooldown": 4000 },
     { "trigger": "Boa noite", "effect": "stars", "match": "phrase", "cooldown": 6000, "particles": 28 },
     { "trigger": "F", "effect": "mono-rain", "match": "exact", "cooldown": 5000, "particles": 34 }
 ]
 ```
 
-Para reconhecer menções antes de o streamer enviar sua primeira mensagem, preencha **STREAMER_NAMES** com o nome do canal sem `@`:
+Para reconhecer menções antes de o streamer enviar sua primeira mensagem, preencha **STREAMER_NAMES** com o nome do canal sem `@`. O nome precisa ficar entre aspas:
 
-    "STREAMER_NAMES": ["SeuCanal"]
+    "STREAMER_NAMES": "SeuCanal"
+
+Para mais de um nome, também é aceita uma lista: `"STREAMER_NAMES": ["SeuCanal", "OutroNome"]`. Não use `[SeuCanal]` sem aspas: isso é JavaScript inválido e interrompe todo o widget.
 
 Quando o cargo de broadcaster é recebido pela Streamlabs, o PersonChat também aprende o nome automaticamente.
+
+**STREAMER_HIGHLIGHT_ENABLED** controla o destaque do nome informado manualmente. Avatar e efeitos de palavras continuam ativos nos dois modos. Com `true`, esse nome usa o degradê especial; com `false`, também pode usar cor pessoal e agrupamento normal. Um cargo real de broadcaster continua tendo prioridade de cargo. Informar o nome não cria artificialmente esse cargo.
 
 ## 🔧 Configuração
 
 Exemplo do bloco encontrado no início de **JS.txt**:
 
-    globalThis.PERSONCHAT_CONFIG = globalThis.PERSONCHAT_CONFIG || {
+    globalThis.PERSONCHAT_CONFIG = {
         THEME: "dark-purple",
         MESSAGE_ANIMATION: "soft-slide",
         TEXT_EFFECT: "soft-glow",
@@ -211,7 +217,7 @@ Exemplo do bloco encontrado no início de **JS.txt**:
         CLIMAX_ENABLED: true,
         STREAMER_HIGHLIGHT_ENABLED: true,
         STREAMER_MENTION_ENABLED: true,
-        STREAMER_NAMES: ["SeuCanal"],
+        STREAMER_NAMES: "SeuCanal",
         EMBED_IMAGES: false,
         IMAGE_ALLOWED_HOSTS: []
     };
@@ -238,11 +244,19 @@ Exemplo do bloco encontrado no início de **JS.txt**:
 | VIEWER_COLOR_PALETTE                      | Define a lista segura de degradês disponíveis ao público.                  |
 | WORD_EFFECTS_ENABLED                      | Ativa os gatilhos de palavras e frases.                                   |
 | CLIMAX_ENABLED                            | Ativa o modo visual para períodos de alta atividade.                      |
+| STREAMER_HIGHLIGHT_ENABLED                | Ativa o degradê especial sem alterar o cargo real da pessoa.              |
 | STREAMER_NAMES                            | Informa os nomes usados para detectar o streamer e suas menções.          |
 | FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN | Tenta recuperar foto Twitch quando faltam metadados.                      |
 | FETCH_KICK_AVATAR                         | Permite recuperar foto pela API pública da Kick.                          |
 | REPLY_FALLBACK_FROM_LEADING_MENTION       | Cria reply visual para mensagens iniciadas por @usuário.                  |
 | EMBED_IMAGES                              | Converte links autorizados em imagens; permanece desligado por segurança. |
+
+## 🩺 Solução rápida de problemas
+
+- **GG não criou a onda:** o combo precisa de três pessoas diferentes em até dez segundos. Confira o contador `GG 1/3` até `GG 3/3`. Com redução de movimento ativa, o contador permanece, mas a onda não anima.
+- **!cor foi ocultado, mas a cor não apareceu:** substitua os três arquivos pela mesma versão e envie uma nova mensagem. A v7.5.0 corrige a troca tardia entre nome, login, plataforma e ID.
+- **Recursos pararam após preencher o streamer:** use `"STREAMER_NAMES": "SeuCanal"`, sempre com aspas. A v7.5.0 não transforma esse nome em cargo de broadcaster.
+- **Alteração não apareceu no preview:** clique em **Salvar configurações**. O bloco da v7.5.0 é reaplicado a cada execução e não reutiliza a configuração antiga.
 
 ## 🌐 Plataformas e emotes
 
