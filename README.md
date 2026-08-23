@@ -1,4 +1,4 @@
-# PersonChat v7.5.0 — Caixa de Chat Interativa para Streamlabs
+# PersonChat v7.6.0 — Caixa de Chat Interativa para Streamlabs
 
 Tema de chat moderno e responsivo para Twitch, YouTube e Kick, desenvolvido especificamente para a **Caixa de chat nativa da Streamlabs**.
 
@@ -40,7 +40,7 @@ Substitua sempre os três arquivos juntos.
 - Avatar real do usuário quando a plataforma disponibiliza a foto.
 - Busca controlada de avatar da Twitch e Kick quando necessário.
 - Avatar local por iniciais se a foto falhar ou não existir.
-- Caixa **Em resposta a @usuário**.
+- Indicador compacto de resposta acima do nick, com **@usuário** e sem texto redundante.
 - Trecho da mensagem original dentro da caixa de reply quando fornecido pela plataforma.
 - Fallback de reply para mensagens iniciadas por **@usuário**.
 - Badges e emotes inseridos pela própria Streamlabs.
@@ -87,9 +87,11 @@ A mensagem nunca é escondida se uma foto não carregar.
 
 Quando Twitch ou Kick enviam os dados estruturados do reply, o PersonChat mostra:
 
-- o usuário respondido;
+- uma faixa compacta acima do cabeçalho com o usuário respondido;
 - o texto original, quando disponível;
 - a resposta atual sem duplicar a menção inicial.
+
+Visualmente, a faixa usa apenas o ícone de reply, **@usuário** e o trecho original; a expressão **Em resposta a** permanece somente na descrição acessível para leitores de tela.
 
 Quando esses dados não chegam, uma mensagem iniciada por **@usuário** ativa o fallback visual de reply.
 

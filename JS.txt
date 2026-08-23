@@ -1,4 +1,4 @@
-// PersonChat v7.5.0 | Streamlabs Chat Box
+// PersonChat v7.6.0 | Streamlabs Chat Box
 // ===== CONFIGURACAO EDITAVEL DO PERSONCHAT =====
 // Ajuste somente este objeto antes de colar o arquivo no widget.
 // STREAMER_NAMES aceita "SeuCanal" ou ["SeuCanal"]. Mantenha o nome entre aspas e sem @.
@@ -2262,7 +2262,7 @@ globalThis.PERSONCHAT_CONFIG = {
   function removeReplyMentionFromMessage(messageElement, replyTarget) {
     if (!messageElement || !replyTarget) return false;
     const target = String(replyTarget).replace(/^@/, "");
-    const pattern = new RegExp("^@" + escapeRegExp(target) + "[\\s:,-]+", "i");
+    const pattern = new RegExp("^@" + escapeRegExp(target) + "[\\s:,.-]+", "i");
     const match = String(messageElement.textContent || "").match(pattern);
     if (!match) return false;
     const documentRef = messageElement.ownerDocument;
@@ -2384,13 +2384,18 @@ globalThis.PERSONCHAT_CONFIG = {
     decorators.appendChild(banner);
   }
   function addReplyPill(row, reply) {
-    const headerRow = row.querySelector(".message-header-row");
-    if (!headerRow) return;
+    const decorators = row.querySelector(".message-decorators");
+    if (!decorators) return;
     const replyTarget = reply.target;
     const parentMessage = reply.parentMessage || "";
-    const current = headerRow.querySelector("[data-personchat-reply-pill]");
-    if (current && current.dataset.replyTarget === replyTarget && current.dataset.replyMessage === parentMessage)
+    const current = row.querySelector("[data-personchat-reply-pill]");
+    if (current && current.dataset.replyTarget === replyTarget && current.dataset.replyMessage === parentMessage) {
+      current.querySelector(".reply-label")?.remove();
+      if (current.parentElement !== decorators || decorators.firstChild !== current) {
+        decorators.insertBefore(current, decorators.firstChild);
+      }
       return;
+    }
     if (current) current.remove();
     row.classList.add("msg-reply");
     const pill = row.ownerDocument.createElement("div");
@@ -2403,13 +2408,10 @@ globalThis.PERSONCHAT_CONFIG = {
     icon.className = "reply-icon";
     icon.textContent = "↩";
     icon.setAttribute("aria-hidden", "true");
-    const label = row.ownerDocument.createElement("span");
-    label.className = "reply-label";
-    label.textContent = "Em resposta a";
     const name = row.ownerDocument.createElement("span");
     name.className = "reply-name";
     name.textContent = "@" + replyTarget.replace(/^@/, "");
-    pill.append(icon, label, name);
+    pill.append(icon, name);
     if (parentMessage) {
       const excerpt = row.ownerDocument.createElement("span");
       excerpt.className = "reply-message";
@@ -2417,7 +2419,7 @@ globalThis.PERSONCHAT_CONFIG = {
       excerpt.title = parentMessage;
       pill.appendChild(excerpt);
     }
-    headerRow.appendChild(pill);
+    decorators.insertBefore(pill, decorators.firstChild);
   }
   function extractImageUrls(messageElement, config) {
     if (!config.EMBED_IMAGES || !messageElement) return [];
