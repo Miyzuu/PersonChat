@@ -1,4 +1,4 @@
-# PersonChat v7.7.0 — Caixa de Chat Interativa para Streamlabs
+# PersonChat — Caixa de Chat Interativa para Streamlabs
 
 Tema de chat moderno e responsivo para Twitch, YouTube e Kick, desenvolvido especificamente para a **Caixa de chat nativa da Streamlabs**.
 
