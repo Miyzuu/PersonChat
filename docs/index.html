@@ -1,0 +1,1477 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta
+        http-equiv="Content-Security-Policy"
+        content="default-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; frame-src 'self' about:; object-src 'none'; media-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'"
+    >
+    <meta
+        name="description"
+        content="Demonstração interativa do PersonChat para testar temas, animações e recursos antes de instalar na Streamlabs."
+    >
+    <title>PersonChat — Demonstração interativa</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --page-bg: #070812;
+            --panel-bg: rgba(15, 17, 32, 0.9);
+            --panel-soft: rgba(27, 30, 52, 0.76);
+            --border: rgba(169, 153, 255, 0.2);
+            --border-strong: rgba(169, 153, 255, 0.48);
+            --text: #f5f3ff;
+            --muted: #aaa6c5;
+            --primary: #9f7aea;
+            --primary-bright: #c4b5fd;
+            --cyan: #67e8f9;
+            --success: #6ee7b7;
+            --danger: #fda4af;
+            --focus: #f0abfc;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            min-height: 100%;
+            background: var(--page-bg);
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 12% 8%, rgba(109, 40, 217, 0.23), transparent 31rem),
+                radial-gradient(circle at 88% 24%, rgba(8, 145, 178, 0.14), transparent 28rem),
+                linear-gradient(145deg, #070812 0%, #0b0d19 52%, #080914 100%);
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button,
+        select,
+        input[type="text"] {
+            min-height: 44px;
+        }
+
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        summary:focus-visible,
+        a:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 3px;
+        }
+
+        a {
+            color: var(--cyan);
+        }
+
+        .page-shell {
+            width: min(1480px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 30px 0 44px;
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 22px;
+            padding: clamp(24px, 5vw, 48px);
+            border: 1px solid var(--border);
+            border-radius: 26px;
+            background:
+                linear-gradient(125deg, rgba(30, 24, 58, 0.96), rgba(12, 15, 29, 0.94)),
+                var(--panel-bg);
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            top: -150px;
+            right: -90px;
+            width: 360px;
+            height: 360px;
+            border: 1px solid rgba(196, 181, 253, 0.22);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.22), transparent 66%);
+            pointer-events: none;
+        }
+
+        .hero-topline {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            color: var(--primary-bright);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .hero-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 14px rgba(110, 231, 183, 0.9);
+        }
+
+        .hero h1 {
+            position: relative;
+            z-index: 1;
+            max-width: 880px;
+            margin: 0;
+            font-size: clamp(34px, 6vw, 72px);
+            line-height: 0.98;
+            letter-spacing: -0.055em;
+        }
+
+        .hero p {
+            position: relative;
+            z-index: 1;
+            max-width: 760px;
+            margin: 20px 0 0;
+            color: #c9c5de;
+            font-size: clamp(16px, 2vw, 20px);
+            line-height: 1.65;
+        }
+
+        .hero-meta {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(8, 9, 20, 0.52);
+            color: #d8d4ec;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(280px, 370px) minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: var(--panel-bg);
+            box-shadow: 0 22px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(18px);
+        }
+
+        .controls {
+            position: sticky;
+            top: 18px;
+            overflow: hidden;
+        }
+
+        .panel-heading {
+            padding: 22px 22px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .eyebrow {
+            margin: 0 0 6px;
+            color: var(--primary-bright);
+            font-size: 11px;
+            font-weight: 850;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .panel-heading h2 {
+            margin: 0;
+            font-size: 21px;
+            letter-spacing: -0.02em;
+        }
+
+        .panel-heading p {
+            margin: 7px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .controls-body {
+            display: grid;
+            gap: 18px;
+            max-height: calc(100vh - 180px);
+            padding: 20px 22px 24px;
+            overflow-y: auto;
+            scrollbar-color: #625a82 transparent;
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 13px;
+        }
+
+        .field,
+        .field-full {
+            display: grid;
+            gap: 7px;
+        }
+
+        .field-full {
+            grid-column: 1 / -1;
+        }
+
+        label,
+        .field-label {
+            color: #dcd8ec;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        select,
+        input[type="text"] {
+            width: 100%;
+            border: 1px solid rgba(188, 175, 255, 0.24);
+            border-radius: 11px;
+            background: #101323;
+            color: var(--text);
+            padding: 0 12px;
+        }
+
+        select:hover,
+        input[type="text"]:hover {
+            border-color: var(--border-strong);
+        }
+
+        .toggle-list {
+            display: grid;
+            gap: 9px;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 48px;
+            padding: 9px 11px;
+            border: 1px solid rgba(188, 175, 255, 0.14);
+            border-radius: 12px;
+            background: rgba(25, 27, 47, 0.72);
+        }
+
+        .toggle span {
+            font-size: 12px;
+            font-weight: 750;
+            line-height: 1.35;
+        }
+
+        .toggle input {
+            width: 22px;
+            height: 22px;
+            margin: 0;
+            accent-color: #8b5cf6;
+            cursor: pointer;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            padding: 0 14px;
+            color: #ffffff;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+        }
+
+        .button:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            box-shadow: 0 10px 24px rgba(124, 58, 237, 0.3);
+        }
+
+        .button-secondary {
+            border-color: var(--border);
+            background: #181a2e;
+        }
+
+        .button-quiet {
+            border-color: rgba(188, 175, 255, 0.18);
+            background: transparent;
+            color: #d9d5ea;
+        }
+
+        .message-composer {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border: 1px solid rgba(188, 175, 255, 0.15);
+            border-radius: 14px;
+            background: rgba(8, 10, 22, 0.48);
+        }
+
+        .message-composer .button {
+            width: 100%;
+        }
+
+        details {
+            border: 1px solid rgba(188, 175, 255, 0.15);
+            border-radius: 13px;
+            background: rgba(8, 10, 22, 0.42);
+        }
+
+        summary {
+            padding: 13px 14px;
+            color: #ddd9ec;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        pre {
+            max-height: 230px;
+            margin: 0;
+            padding: 14px;
+            overflow: auto;
+            border-top: 1px solid rgba(188, 175, 255, 0.13);
+            color: #c4f1ff;
+            font: 12px/1.55 "Cascadia Code", Consolas, monospace;
+            white-space: pre-wrap;
+        }
+
+        .copy-row {
+            padding: 0 12px 12px;
+        }
+
+        .copy-row .button {
+            width: 100%;
+        }
+
+        .status {
+            min-height: 20px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .status[data-tone="success"] {
+            color: var(--success);
+        }
+
+        .status[data-tone="error"] {
+            color: var(--danger);
+        }
+
+        .preview-panel {
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .preview-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 15px 18px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(10, 12, 25, 0.82);
+        }
+
+        .preview-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 28px;
+            padding: 0 9px;
+            border: 1px solid rgba(110, 231, 183, 0.28);
+            border-radius: 999px;
+            background: rgba(6, 78, 59, 0.24);
+            color: #a7f3d0;
+            font-size: 10px;
+            font-weight: 850;
+            letter-spacing: 0.08em;
+        }
+
+        .live-badge::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px rgba(110, 231, 183, 0.8);
+        }
+
+        .preview-size-label {
+            color: var(--muted);
+            font: 11px "Cascadia Code", Consolas, monospace;
+        }
+
+        .preview-area {
+            display: grid;
+            min-height: 760px;
+            padding: 26px;
+            place-items: start center;
+            overflow: auto;
+            background:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px),
+                #090b14;
+            background-size: 24px 24px;
+        }
+
+        .device-frame {
+            position: relative;
+            width: min(100%, var(--device-width, 400px));
+            aspect-ratio: var(--device-ratio, 400 / 700);
+            overflow: hidden;
+            border: 1px solid rgba(206, 198, 255, 0.34);
+            border-radius: 19px;
+            background: #05060b;
+            box-shadow:
+                0 30px 70px rgba(0, 0, 0, 0.52),
+                0 0 0 8px rgba(32, 34, 52, 0.62);
+            transition: width 220ms ease, aspect-ratio 220ms ease;
+        }
+
+        .device-frame::before {
+            content: "";
+            position: absolute;
+            z-index: 4;
+            top: 8px;
+            left: 50%;
+            width: 48px;
+            height: 4px;
+            border-radius: 99px;
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        iframe {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: #070811;
+        }
+
+        .loading-cover {
+            position: absolute;
+            z-index: 3;
+            inset: 0;
+            display: grid;
+            padding: 28px;
+            place-items: center;
+            background: #090b14;
+            color: var(--muted);
+            text-align: center;
+            transition: opacity 180ms ease, visibility 180ms ease;
+        }
+
+        .loading-cover[hidden] {
+            visibility: hidden;
+            opacity: 0;
+        }
+
+        .loader {
+            width: 38px;
+            height: 38px;
+            margin: 0 auto 14px;
+            border: 3px solid rgba(196, 181, 253, 0.2);
+            border-top-color: var(--primary-bright);
+            border-radius: 50%;
+            animation: spin 800ms linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .preview-note {
+            margin: 16px 18px 18px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .footer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 24px 4px 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        @media (max-width: 980px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                position: static;
+            }
+
+            .controls-body {
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .page-shell {
+                width: min(100% - 20px, 1480px);
+                padding-top: 10px;
+            }
+
+            .hero,
+            .panel {
+                border-radius: 17px;
+            }
+
+            .hero {
+                padding: 24px 20px;
+            }
+
+            .field-grid,
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-toolbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .preview-area {
+                min-height: 610px;
+                padding: 18px 11px 24px;
+            }
+
+            .device-frame {
+                border-radius: 13px;
+                box-shadow: 0 22px 50px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-shell">
+        <header class="hero">
+            <div class="hero-topline"><span class="hero-dot" aria-hidden="true"></span> PersonChat Lab</div>
+            <h1>Veja o chat antes de instalar.</h1>
+            <p>
+                Troque temas, animações e recursos enquanto mensagens simuladas usam exatamente os três arquivos da Streamlabs.
+            </p>
+            <div class="hero-meta" aria-label="Informações da demonstração">
+                <span class="chip" id="versionChip">Carregando versão…</span>
+                <span class="chip">16 temas</span>
+                <span class="chip">Sem login ou token</span>
+                <span class="chip">Prévia isolada</span>
+            </div>
+        </header>
+
+        <main class="workspace">
+            <aside class="panel controls" aria-labelledby="controlsTitle">
+                <div class="panel-heading">
+                    <p class="eyebrow">Configuração</p>
+                    <h2 id="controlsTitle">Personalize a prévia</h2>
+                    <p>As escolhas abaixo atualizam o chat e geram um bloco pronto para copiar.</p>
+                </div>
+
+                <div class="controls-body">
+                    <div class="field-grid">
+                        <div class="field-full">
+                            <label for="theme">Tema</label>
+                            <select id="theme">
+                                <option value="dark-purple">Dark Purple</option>
+                                <option value="pink-gold">Pink Gold</option>
+                                <option value="kick-green">Kick Green</option>
+                                <option value="youtube-red">YouTube Red</option>
+                                <option value="clean-white">Clean White</option>
+                                <option value="ocean-blue">Ocean Blue</option>
+                                <option value="neon-cyber">Neon Cyber</option>
+                                <option value="sunset-orange">Sunset Orange</option>
+                                <option value="emerald-night">Emerald Night</option>
+                                <option value="royal-blue">Royal Blue</option>
+                                <option value="cherry-black">Cherry Black</option>
+                                <option value="lavender-dream">Lavender Dream</option>
+                                <option value="gold-black">Gold Black</option>
+                                <option value="ice-blue">Ice Blue</option>
+                                <option value="pastel-candy">Pastel Candy</option>
+                                <option value="black-white">Black &amp; White</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="messageAnimation">Entrada</label>
+                            <select id="messageAnimation">
+                                <option value="soft-slide">Soft Slide</option>
+                                <option value="float-up">Float Up</option>
+                                <option value="pop">Pop</option>
+                                <option value="minimal">Minimal</option>
+                                <option value="none">Sem animação</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="textEffect">Texto</label>
+                            <select id="textEffect">
+                                <option value="soft-glow">Soft Glow</option>
+                                <option value="color-pulse">Color Pulse</option>
+                                <option value="none">Sem efeito</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="lineLength">Largura</label>
+                            <select id="lineLength">
+                                <option value="25ch">Compacta</option>
+                                <option value="38ch">Média</option>
+                                <option value="50ch">Larga</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="viewport">Formato</label>
+                            <select id="viewport">
+                                <option value="400x700">Vertical · 400×700</option>
+                                <option value="320x568">Compacto · 320×568</option>
+                                <option value="700x400">Horizontal · 700×400</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="toggle-list" aria-label="Recursos visuais">
+                        <label class="toggle" for="showAvatar">
+                            <span>Mostrar avatar</span>
+                            <input id="showAvatar" type="checkbox" checked>
+                        </label>
+                        <label class="toggle" for="roleGradients">
+                            <span>Degradês de cargos</span>
+                            <input id="roleGradients" type="checkbox" checked>
+                        </label>
+                        <label class="toggle" for="showBadges">
+                            <span>Badges de plataforma e cargo</span>
+                            <input id="showBadges" type="checkbox" checked>
+                        </label>
+                    </div>
+
+                    <div class="field-full">
+                        <label for="scenario">Demonstração automática</label>
+                        <select id="scenario">
+                            <option value="tour">Tour completa</option>
+                            <option value="roles">Streamer, moderador e raider</option>
+                            <option value="reply">Reply compacto</option>
+                            <option value="emotes">Mensagem somente com emotes</option>
+                            <option value="effects">Briar, Hype, Boa noite e F</option>
+                            <option value="gg">Onda coletiva de GG</option>
+                            <option value="climax">Modo Clímax</option>
+                        </select>
+                    </div>
+
+                    <div class="action-grid">
+                        <button class="button button-primary" id="playButton" type="button">▶ Reproduzir</button>
+                        <button class="button button-secondary" id="pauseButton" type="button">Ⅱ Pausar</button>
+                        <button class="button button-quiet" id="clearButton" type="button">Limpar chat</button>
+                        <button class="button button-quiet" id="rebuildButton" type="button">Recarregar prévia</button>
+                    </div>
+
+                    <div class="message-composer" aria-labelledby="composerTitle">
+                        <span class="field-label" id="composerTitle">Enviar mensagem de teste</span>
+                        <div class="field-grid">
+                            <div class="field">
+                                <label for="profile">Perfil</label>
+                                <select id="profile">
+                                    <option value="viewer">Viewer</option>
+                                    <option value="moderator">Moderador</option>
+                                    <option value="raider">Raider</option>
+                                    <option value="streamer">Streamer</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="platform">Plataforma</label>
+                                <select id="platform">
+                                    <option value="twitch">Twitch</option>
+                                    <option value="youtube">YouTube</option>
+                                    <option value="kick">Kick</option>
+                                </select>
+                            </div>
+                        </div>
+                        <label for="messageText">Mensagem</label>
+                        <input id="messageText" type="text" maxlength="180" value="Briar chegou para a live!" autocomplete="off">
+                        <button class="button button-secondary" id="sendButton" type="button">Enviar ao chat</button>
+                    </div>
+
+                    <details>
+                        <summary>Configuração gerada</summary>
+                        <pre><code id="configOutput"></code></pre>
+                        <div class="copy-row">
+                            <button class="button button-secondary" id="copyButton" type="button">Copiar configuração</button>
+                        </div>
+                    </details>
+
+                    <p class="status" id="status" role="status" aria-live="polite">Preparando os três arquivos do PersonChat…</p>
+                </div>
+            </aside>
+
+            <section class="panel preview-panel" aria-labelledby="previewTitle">
+                <div class="preview-toolbar">
+                    <div class="preview-title" id="previewTitle">
+                        <span class="live-badge">AO VIVO</span>
+                        <span>Caixa de chat simulada</span>
+                    </div>
+                    <span class="preview-size-label" id="viewportLabel">400 × 700</span>
+                </div>
+
+                <div class="preview-area">
+                    <div class="device-frame" id="deviceFrame">
+                        <div class="loading-cover" id="loadingCover">
+                            <div>
+                                <div class="loader" aria-hidden="true"></div>
+                                <strong>Carregando o widget real…</strong>
+                            </div>
+                        </div>
+                        <iframe
+                            id="chatFrame"
+                            title="Prévia interativa do PersonChat"
+                            sandbox="allow-scripts"
+                            referrerpolicy="no-referrer"
+                        ></iframe>
+                    </div>
+                </div>
+
+                <p class="preview-note">
+                    Esta é uma simulação local: nenhuma conta, token ou mensagem real é acessada. A instalação na Streamlabs continua usando somente os três arquivos TXT.
+                </p>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <span>PersonChat · demonstração de documentação</span>
+            <a href="https://github.com/Miyzuu/PersonChat">Abrir repositório no GitHub</a>
+        </footer>
+    </div>
+
+    <script>
+        "use strict";
+
+        const EXPECTED_VERSION = "7.7.0";
+        const BRIDGE_SCOPE = "personchat-preview-v1";
+        const THEMES = Object.freeze([
+            "pink-gold", "dark-purple", "kick-green", "youtube-red", "clean-white", "ocean-blue",
+            "neon-cyber", "sunset-orange", "emerald-night", "royal-blue", "cherry-black",
+            "lavender-dream", "gold-black", "ice-blue", "pastel-candy", "black-white"
+        ]);
+        const ANIMATIONS = Object.freeze(["soft-slide", "float-up", "pop", "minimal", "none"]);
+        const TEXT_EFFECTS = Object.freeze(["none", "soft-glow", "color-pulse"]);
+        const LINE_LENGTHS = Object.freeze(["25ch", "38ch", "50ch"]);
+        const VIEWPORTS = Object.freeze({
+            "400x700": Object.freeze({ width: 400, height: 700 }),
+            "320x568": Object.freeze({ width: 320, height: 568 }),
+            "700x400": Object.freeze({ width: 700, height: 400 })
+        });
+        const PROFILES = Object.freeze({
+            viewer: Object.freeze({ name: "Visitante", role: "", color: "#60a5fa" }),
+            moderator: Object.freeze({ name: "LunaMod", role: "moderator", color: "#34d399" }),
+            raider: Object.freeze({ name: "RaidMaster", role: "raider", color: "#c084fc" }),
+            streamer: Object.freeze({ name: "Miyzuu", role: "broadcaster", color: "#fb7185" })
+        });
+
+        const elements = {
+            frame: document.getElementById("chatFrame"),
+            deviceFrame: document.getElementById("deviceFrame"),
+            loadingCover: document.getElementById("loadingCover"),
+            versionChip: document.getElementById("versionChip"),
+            status: document.getElementById("status"),
+            theme: document.getElementById("theme"),
+            messageAnimation: document.getElementById("messageAnimation"),
+            textEffect: document.getElementById("textEffect"),
+            lineLength: document.getElementById("lineLength"),
+            viewport: document.getElementById("viewport"),
+            viewportLabel: document.getElementById("viewportLabel"),
+            showAvatar: document.getElementById("showAvatar"),
+            roleGradients: document.getElementById("roleGradients"),
+            showBadges: document.getElementById("showBadges"),
+            scenario: document.getElementById("scenario"),
+            playButton: document.getElementById("playButton"),
+            pauseButton: document.getElementById("pauseButton"),
+            clearButton: document.getElementById("clearButton"),
+            rebuildButton: document.getElementById("rebuildButton"),
+            profile: document.getElementById("profile"),
+            platform: document.getElementById("platform"),
+            messageText: document.getElementById("messageText"),
+            sendButton: document.getElementById("sendButton"),
+            configOutput: document.getElementById("configOutput"),
+            copyButton: document.getElementById("copyButton")
+        };
+
+        const runtime = {
+            assets: null,
+            version: "",
+            token: "",
+            ready: false,
+            buildId: 0,
+            queue: [],
+            queueIndex: 0,
+            queueTimer: null,
+            readyTimer: null,
+            paused: false
+        };
+
+        const state = readStateFromUrl();
+        applyStateToControls();
+        updateGeneratedConfiguration();
+        updateViewport();
+        bindEvents();
+        window.addEventListener("message", handleBridgeMessage);
+        initialize().catch(showFatalError);
+
+        function readStateFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const theme = THEMES.includes(params.get("theme")) ? params.get("theme") : "dark-purple";
+            const animation = ANIMATIONS.includes(params.get("animation")) ? params.get("animation") : "soft-slide";
+            const textEffect = TEXT_EFFECTS.includes(params.get("text")) ? params.get("text") : "soft-glow";
+            const lineLength = LINE_LENGTHS.includes(params.get("width")) ? params.get("width") : "25ch";
+            const viewport = Object.hasOwn(VIEWPORTS, params.get("viewport")) ? params.get("viewport") : "400x700";
+            return {
+                theme,
+                animation,
+                textEffect,
+                lineLength,
+                viewport,
+                showAvatar: params.get("avatar") !== "no",
+                roleGradients: params.get("gradients") !== "no",
+                showBadges: params.get("badges") !== "no"
+            };
+        }
+
+        function applyStateToControls() {
+            elements.theme.value = state.theme;
+            elements.messageAnimation.value = state.animation;
+            elements.textEffect.value = state.textEffect;
+            elements.lineLength.value = state.lineLength;
+            elements.viewport.value = state.viewport;
+            elements.showAvatar.checked = state.showAvatar;
+            elements.roleGradients.checked = state.roleGradients;
+            elements.showBadges.checked = state.showBadges;
+        }
+
+        function bindEvents() {
+            const stateControls = [
+                elements.theme,
+                elements.messageAnimation,
+                elements.textEffect,
+                elements.lineLength,
+                elements.viewport,
+                elements.showAvatar,
+                elements.roleGradients,
+                elements.showBadges
+            ];
+            stateControls.forEach((control) => control.addEventListener("change", handleStateChange));
+            elements.playButton.addEventListener("click", () => buildPreview(true));
+            elements.pauseButton.addEventListener("click", togglePause);
+            elements.clearButton.addEventListener("click", clearPreview);
+            elements.rebuildButton.addEventListener("click", () => buildPreview(true));
+            elements.sendButton.addEventListener("click", sendCustomMessage);
+            elements.messageText.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    sendCustomMessage();
+                }
+            });
+            elements.copyButton.addEventListener("click", copyConfiguration);
+        }
+
+        async function initialize() {
+            setControlsEnabled(false);
+            setStatus("Carregando HTML, CSS e JS do PersonChat…");
+            runtime.assets = await loadAssets();
+            runtime.version = validateAssetVersions(runtime.assets);
+            elements.versionChip.textContent = "PersonChat v" + runtime.version;
+            await buildPreview(false);
+        }
+
+        async function loadAssets() {
+            const names = ["HTML.txt", "CSS.txt", "JS.txt"];
+            const entries = await Promise.all(names.map(async (name) => {
+                const response = await fetch(new URL("../" + name, window.location.href), {
+                    cache: "no-cache",
+                    credentials: "same-origin"
+                });
+                if (!response.ok) throw new Error("Não foi possível carregar " + name + " (HTTP " + response.status + ").");
+                return [name, await response.text()];
+            }));
+            return Object.fromEntries(entries);
+        }
+
+        function validateAssetVersions(assets) {
+            const versions = ["HTML.txt", "CSS.txt", "JS.txt"].map((name) => {
+                const match = assets[name].match(/PersonChat v(\d+\.\d+\.\d+)/);
+                if (!match) throw new Error(name + " não possui um cabeçalho de versão reconhecível.");
+                return match[1];
+            });
+            if (!versions.every((version) => version === versions[0])) {
+                throw new Error("Os três arquivos pertencem a versões diferentes. Atualize HTML, CSS e JS juntos.");
+            }
+            if (versions[0] !== EXPECTED_VERSION) {
+                throw new Error("A demonstração v" + EXPECTED_VERSION + " recebeu arquivos v" + versions[0] + ".");
+            }
+            return versions[0];
+        }
+
+        function currentConfiguration() {
+            return {
+                THEME: state.theme,
+                MESSAGE_ANIMATION: state.animation,
+                TEXT_EFFECT: state.textEffect,
+                MESSAGE_LINE_LENGTH: state.lineLength,
+                SHOW_USER_AVATAR: state.showAvatar ? "yes" : "no",
+                ROLE_GRADIENTS_ENABLED: state.roleGradients,
+                SHOW_PLATFORM_BADGE: state.showBadges,
+                SHOW_ROLE_PILLS: state.showBadges
+            };
+        }
+
+        function previewRuntimeConfiguration() {
+            const match = runtime.assets["JS.txt"].match(/globalThis\.PERSONCHAT_CONFIG\s*=\s*(\{[\s\S]*?\n\});/);
+            if (!match) throw new Error("O bloco PERSONCHAT_CONFIG não foi encontrado no JS.txt.");
+            const config = JSON.parse(match[1]);
+            Object.assign(config, currentConfiguration(), {
+                MAX_MESSAGES: 50,
+                HIDE_AFTER: 0,
+                FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN: false,
+                FETCH_KICK_AVATAR: false,
+                SHOW_USER_AVATAR: "yes",
+                SHOW_PLATFORM_BADGE: true,
+                SHOW_ROLE_PILLS: true,
+                SHOW_EVENT_BANNERS: true,
+                FIRST_MESSAGE_MODE: "off",
+                EMBED_IMAGES: false,
+                IMAGE_ALLOWED_HOSTS: [],
+                STREAMER_NAMES: "Miyzuu"
+            });
+            return config;
+        }
+
+        function getBundleSource() {
+            const source = runtime.assets["JS.txt"];
+            const marker = "// Bundle autocontido para uso direto na aba JS da Streamlabs.";
+            const index = source.indexOf(marker);
+            if (index < 0) throw new Error("O bundle autocontido não foi encontrado no JS.txt.");
+            return source.slice(index);
+        }
+
+        function makeToken() {
+            const values = new Uint32Array(4);
+            window.crypto.getRandomValues(values);
+            return Array.from(values, (value) => value.toString(16).padStart(8, "0")).join("");
+        }
+
+        async function buildPreview(replay) {
+            if (!runtime.assets) return;
+            stopPlayback();
+            runtime.ready = false;
+            runtime.buildId += 1;
+            const buildId = runtime.buildId;
+            runtime.token = makeToken();
+            if (runtime.readyTimer !== null) window.clearTimeout(runtime.readyTimer);
+            runtime.readyTimer = null;
+            elements.loadingCover.hidden = false;
+            renderLoadingCover("Carregando o widget real…", "", true);
+            setControlsEnabled(false);
+            setStatus("Montando a prévia isolada…");
+
+            const configSource = "globalThis.PERSONCHAT_CONFIG = " + JSON.stringify(previewRuntimeConfiguration(), null, 4) + ";\n";
+            const fetchGuard = "window.fetch = async function () { return { ok: false, json: async function () { return {}; } }; };\n";
+            const bridgeSource = createBridgeSource(runtime.token);
+            const scriptSource = escapeInlineScript(fetchGuard + configSource + getBundleSource() + "\n" + bridgeSource);
+            const cssSource = escapeInlineStyle(runtime.assets["CSS.txt"]);
+            const htmlSource = runtime.assets["HTML.txt"];
+            const previewOverrides = escapeInlineStyle(`
+                html, body { background: #080a12 !important; }
+                body::before {
+                    content: "";
+                    position: fixed;
+                    inset: 0;
+                    z-index: -1;
+                    background:
+                        radial-gradient(circle at 18% 16%, rgba(109,40,217,.22), transparent 42%),
+                        linear-gradient(160deg, #090b15, #05060b);
+                }
+                .emoji { display: inline-block; width: auto; font-style: normal; }
+            `);
+
+            runtime.readyTimer = window.setTimeout(() => {
+                if (runtime.ready || buildId !== runtime.buildId) return;
+                runtime.readyTimer = null;
+                renderLoadingCover(
+                    "A prévia demorou mais que o esperado.",
+                    "Clique em Recarregar prévia para tentar novamente."
+                );
+                setControlsEnabled(false);
+                elements.rebuildButton.disabled = false;
+                setStatus("O iframe não confirmou a inicialização em seis segundos.", "error");
+            }, 6000);
+
+            elements.frame.srcdoc = [
+                "<!doctype html><html lang=\"pt-BR\"><head><meta charset=\"utf-8\">",
+                "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">",
+                "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'\">",
+                "<style>", cssSource, "\n", previewOverrides, "<\/style></head><body>",
+                htmlSource,
+                "<script>", scriptSource, "<\/script></body></html>"
+            ].join("");
+
+            if (replay) setStatus("Recarregando a demonstração…");
+        }
+
+        function escapeInlineScript(value) {
+            return String(value).replace(/<\/script/gi, "<\\/script");
+        }
+
+        function escapeInlineStyle(value) {
+            return String(value).replace(/<\/style/gi, "<\\/style");
+        }
+
+        function createBridgeSource(token) {
+            return `
+                (() => {
+                    "use strict";
+                    const TOKEN = ${JSON.stringify(token)};
+                    const SCOPE = ${JSON.stringify(BRIDGE_SCOPE)};
+                    const ALLOWED_THEMES = new Set(${JSON.stringify(Array.from(THEMES))});
+                    const ALLOWED_ANIMATIONS = new Set(${JSON.stringify(Array.from(ANIMATIONS))});
+                    const ALLOWED_TEXT_EFFECTS = new Set(${JSON.stringify(Array.from(TEXT_EFFECTS))});
+                    const ALLOWED_LINE_LENGTHS = new Set(${JSON.stringify(Array.from(LINE_LENGTHS))});
+                    const ALLOWED_PLATFORMS = new Set(["twitch", "youtube", "kick"]);
+                    const ALLOWED_ROLES = new Set(["", "moderator", "raider", "broadcaster"]);
+                    const templateHost = document.createElement("template");
+                    const sourceTemplate = document.getElementById("chatlist_item");
+                    templateHost.innerHTML = sourceTemplate ? sourceTemplate.textContent.trim() : "";
+                    let sequence = 0;
+
+                    function sanitize(value, limit) {
+                        return String(value == null ? "" : value).replace(/[\\u0000-\\u001f\\u007f]/g, " ").trim().slice(0, limit);
+                    }
+
+                    function setVisualState(input) {
+                        const log = document.getElementById("log");
+                        if (!log || !input) return;
+                        Array.from(log.classList).forEach((name) => {
+                            if (name.startsWith("theme-") || name.startsWith("motion-") || name.startsWith("text-effect-")) {
+                                log.classList.remove(name);
+                            }
+                        });
+                        const theme = ALLOWED_THEMES.has(input.theme) ? input.theme : "dark-purple";
+                        const animation = ALLOWED_ANIMATIONS.has(input.animation) ? input.animation : "soft-slide";
+                        const textEffect = ALLOWED_TEXT_EFFECTS.has(input.textEffect) ? input.textEffect : "soft-glow";
+                        const lineLength = ALLOWED_LINE_LENGTHS.has(input.lineLength) ? input.lineLength : "25ch";
+                        log.classList.add("theme-" + theme, "motion-" + animation, "text-effect-" + textEffect);
+                        log.classList.toggle("show-user-avatars", input.showAvatar === true);
+                        log.classList.toggle("role-gradients-enabled", input.roleGradients === true);
+                        log.classList.toggle("show-platform-badges", input.showBadges === true);
+                        log.classList.toggle("show-role-pills", input.showBadges === true);
+                        log.classList.add("viewer-colors-enabled");
+                        log.style.setProperty("--message-line-length", lineLength);
+                    }
+
+                    function appendMessage(payload) {
+                        const log = document.getElementById("log");
+                        const prototype = templateHost.content.firstElementChild;
+                        if (!log || !prototype || !payload) return;
+                        const platform = ALLOWED_PLATFORMS.has(payload.platform) ? payload.platform : "twitch";
+                        const role = ALLOWED_ROLES.has(payload.role) ? payload.role : "";
+                        const name = sanitize(payload.name, 100) || "Viewer";
+                        const text = sanitize(payload.text, 180) || "Mensagem de teste";
+                        const row = prototype.cloneNode(true);
+                        sequence += 1;
+                        row.dataset.id = "preview-" + sequence;
+                        row.dataset.from = name;
+                        row.dataset.username = name.toLocaleLowerCase("en-US").replace(/\\s+/g, "");
+                        row.dataset.userId = "preview-user-" + platform + "-" + (row.dataset.username || "viewer");
+                        row.dataset.platform = platform;
+                        row.dataset.color = /^#[0-9a-f]{6}$/i.test(payload.color || "") ? payload.color : "#888888";
+                        if (role) row.dataset.role = role;
+                        if (payload.event) row.dataset.event = sanitize(payload.event, 32);
+                        if (payload.replyTarget) row.dataset.replyParent = sanitize(payload.replyTarget, 100);
+                        if (payload.replyMessage) row.dataset.replyParentMessage = sanitize(payload.replyMessage, 280);
+                        row.setAttribute("aria-label", "Mensagem de " + name);
+                        row.querySelector(".user-name").textContent = name;
+                        row.querySelector(".chat-time").textContent = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+                        const message = row.querySelector(".user-message");
+                        message.textContent = "";
+                        if (payload.emotesOnly === true) {
+                            const emoteLabels = { "🎉": "confete", "💜": "coração roxo", "✨": "brilho" };
+                            ["🎉", "💜", "✨"].forEach((symbol) => {
+                                const emote = document.createElement("span");
+                                emote.className = "emoji";
+                                emote.setAttribute("role", "img");
+                                emote.setAttribute("aria-label", emoteLabels[symbol]);
+                                emote.textContent = symbol;
+                                message.appendChild(emote);
+                            });
+                        } else {
+                            message.textContent = text;
+                        }
+                        log.appendChild(row);
+                    }
+
+                    function resetChat() {
+                        document.querySelectorAll("#log .message-row").forEach((row) => row.remove());
+                        const cssEffects = document.getElementById("personchat-effects-css");
+                        if (cssEffects) cssEffects.replaceChildren();
+                    }
+
+                    window.addEventListener("message", (event) => {
+                        const data = event.data;
+                        if (event.source !== parent || !data || data.scope !== SCOPE || data.token !== TOKEN) return;
+                        if (data.action === "configure") setVisualState(data.state);
+                        if (data.action === "reset") resetChat();
+                        if (data.action === "add") appendMessage(data.message);
+                    });
+
+                    function announceReady() {
+                        setTimeout(() => parent.postMessage({ scope: SCOPE, token: TOKEN, action: "ready" }, "*"), 0);
+                    }
+                    if (document.readyState === "loading") {
+                        document.addEventListener("DOMContentLoaded", announceReady, { once: true });
+                    } else {
+                        announceReady();
+                    }
+                })();
+            `;
+        }
+
+        function handleBridgeMessage(event) {
+            const data = event.data;
+            if (event.source !== elements.frame.contentWindow || !data || data.scope !== BRIDGE_SCOPE || data.token !== runtime.token) return;
+            if (data.action !== "ready") return;
+            if (runtime.readyTimer !== null) window.clearTimeout(runtime.readyTimer);
+            runtime.readyTimer = null;
+            runtime.ready = true;
+            elements.loadingCover.hidden = true;
+            setControlsEnabled(true);
+            sendConfiguration();
+            setStatus("Prévia pronta. Escolha um cenário ou envie sua própria mensagem.", "success");
+            playScenario(elements.scenario.value);
+        }
+
+        function postToPreview(action, payload = {}) {
+            if (!runtime.ready || !elements.frame.contentWindow) return false;
+            elements.frame.contentWindow.postMessage({
+                scope: BRIDGE_SCOPE,
+                token: runtime.token,
+                action,
+                ...payload
+            }, "*");
+            return true;
+        }
+
+        function sendConfiguration() {
+            postToPreview("configure", {
+                state: {
+                    theme: state.theme,
+                    animation: state.animation,
+                    textEffect: state.textEffect,
+                    lineLength: state.lineLength,
+                    showAvatar: state.showAvatar,
+                    roleGradients: state.roleGradients,
+                    showBadges: state.showBadges
+                }
+            });
+        }
+
+        function handleStateChange() {
+            state.theme = THEMES.includes(elements.theme.value) ? elements.theme.value : "dark-purple";
+            state.animation = ANIMATIONS.includes(elements.messageAnimation.value) ? elements.messageAnimation.value : "soft-slide";
+            state.textEffect = TEXT_EFFECTS.includes(elements.textEffect.value) ? elements.textEffect.value : "soft-glow";
+            state.lineLength = LINE_LENGTHS.includes(elements.lineLength.value) ? elements.lineLength.value : "25ch";
+            state.viewport = Object.hasOwn(VIEWPORTS, elements.viewport.value) ? elements.viewport.value : "400x700";
+            state.showAvatar = elements.showAvatar.checked;
+            state.roleGradients = elements.roleGradients.checked;
+            state.showBadges = elements.showBadges.checked;
+            sendConfiguration();
+            updateViewport();
+            updateGeneratedConfiguration();
+            updateUrl();
+            setStatus("Configuração aplicada. Reproduza o cenário novamente para rever as animações.", "success");
+        }
+
+        function updateViewport() {
+            const viewport = VIEWPORTS[state.viewport] || VIEWPORTS["400x700"];
+            elements.deviceFrame.style.setProperty("--device-width", viewport.width + "px");
+            elements.deviceFrame.style.setProperty("--device-ratio", viewport.width + " / " + viewport.height);
+            elements.viewportLabel.textContent = viewport.width + " × " + viewport.height;
+        }
+
+        function updateUrl() {
+            const params = new URLSearchParams();
+            params.set("theme", state.theme);
+            params.set("animation", state.animation);
+            params.set("text", state.textEffect);
+            params.set("width", state.lineLength);
+            params.set("viewport", state.viewport);
+            params.set("avatar", state.showAvatar ? "yes" : "no");
+            params.set("gradients", state.roleGradients ? "yes" : "no");
+            params.set("badges", state.showBadges ? "yes" : "no");
+            window.history.replaceState(null, "", window.location.pathname + "?" + params.toString());
+        }
+
+        function updateGeneratedConfiguration() {
+            elements.configOutput.textContent = JSON.stringify(currentConfiguration(), null, 4);
+        }
+
+        async function copyConfiguration() {
+            const value = elements.configOutput.textContent;
+            try {
+                await navigator.clipboard.writeText(value);
+                setStatus("Configuração copiada. Substitua os mesmos campos no início do JS.txt.", "success");
+            } catch {
+                const helper = document.createElement("textarea");
+                helper.value = value;
+                helper.setAttribute("readonly", "");
+                helper.style.position = "fixed";
+                helper.style.opacity = "0";
+                document.body.appendChild(helper);
+                helper.select();
+                const copied = document.execCommand("copy");
+                helper.remove();
+                setStatus(copied ? "Configuração copiada." : "Não foi possível copiar automaticamente.", copied ? "success" : "error");
+            }
+        }
+
+        function scenarioMessages(name) {
+            const scenarios = {
+                roles: [
+                    message("Miyzuu", "A live começou! Sejam bem-vindos 💜", "twitch", "broadcaster", "#fb7185"),
+                    message("LunaMod", "Chat organizado e pronto para o Hype!", "twitch", "moderator", "#34d399"),
+                    message("RaidMaster", "Chegamos com a raid!", "kick", "raider", "#c084fc")
+                ],
+                reply: [
+                    message("LunaMod", "Essa skin ficou incrível!", "twitch", "moderator", "#34d399"),
+                    { ...message("CaioViewer", "Também gostei muito!", "youtube", "", "#60a5fa"), replyTarget: "LunaMod", replyMessage: "Essa skin ficou incrível!" }
+                ],
+                emotes: [
+                    { ...message("EmoteFan", "emotes", "twitch", "", "#f472b6"), emotesOnly: true }
+                ],
+                effects: [
+                    message("BriarMain", "Briar chegou para a live!", "twitch", "", "#f472b6"),
+                    message("HypeTrain", "Hype! Isso foi incrível!", "youtube", "", "#facc15"),
+                    message("NightOwl", "Boa noite, chat!", "kick", "", "#67e8f9"),
+                    message("Respect", "F", "twitch", "", "#d4d4d4")
+                ],
+                gg: [
+                    message("PlayerOne", "GG", "twitch", "", "#60a5fa"),
+                    message("PlayerTwo", "GG", "youtube", "", "#f87171"),
+                    message("PlayerThree", "GG", "kick", "", "#4ade80")
+                ],
+                climax: Array.from({ length: 13 }, (_, index) => message(
+                    "Viewer" + (index + 1),
+                    ["Que jogada!", "Vamos!", "Incrível!", "Chat voando!", "Hype total!"][index % 5],
+                    ["twitch", "youtube", "kick"][index % 3],
+                    "",
+                    ["#60a5fa", "#f472b6", "#4ade80", "#facc15"][index % 4]
+                ))
+            };
+            scenarios.tour = [
+                scenarios.roles[0],
+                scenarios.roles[1],
+                scenarios.reply[1],
+                scenarios.emotes[0],
+                scenarios.effects[0],
+                ...scenarios.gg
+            ];
+            return scenarios[name] || scenarios.tour;
+        }
+
+        function message(name, text, platform, role, color) {
+            return { name, text, platform, role, color };
+        }
+
+        function playScenario(name) {
+            if (!runtime.ready) return;
+            stopPlayback();
+            postToPreview("reset");
+            sendConfiguration();
+            runtime.queue = scenarioMessages(name);
+            runtime.queueIndex = 0;
+            runtime.paused = false;
+            elements.pauseButton.textContent = "Ⅱ Pausar";
+            setStatus("Reproduzindo “" + elements.scenario.options[elements.scenario.selectedIndex].text + "”…");
+            playNext();
+        }
+
+        function playNext() {
+            if (runtime.paused || runtime.queueIndex >= runtime.queue.length) {
+                if (!runtime.paused && runtime.queueIndex >= runtime.queue.length) {
+                    runtime.queueTimer = null;
+                    setStatus("Demonstração concluída. Você pode trocar as opções ou reproduzir novamente.", "success");
+                }
+                return;
+            }
+            postToPreview("add", { message: runtime.queue[runtime.queueIndex] });
+            runtime.queueIndex += 1;
+            const delay = elements.scenario.value === "climax" ? 170 : 680;
+            runtime.queueTimer = window.setTimeout(playNext, delay);
+        }
+
+        function togglePause() {
+            if (!runtime.queue.length || runtime.queueIndex >= runtime.queue.length) {
+                setStatus("Nenhuma reprodução ativa. Escolha um cenário e clique em Reproduzir.");
+                return;
+            }
+            runtime.paused = !runtime.paused;
+            if (runtime.paused) {
+                if (runtime.queueTimer !== null) window.clearTimeout(runtime.queueTimer);
+                runtime.queueTimer = null;
+                elements.pauseButton.textContent = "▶ Continuar";
+                setStatus("Demonstração pausada.");
+            } else {
+                elements.pauseButton.textContent = "Ⅱ Pausar";
+                setStatus("Demonstração retomada.");
+                playNext();
+            }
+        }
+
+        function stopPlayback() {
+            if (runtime.queueTimer !== null) window.clearTimeout(runtime.queueTimer);
+            runtime.queueTimer = null;
+            runtime.queue = [];
+            runtime.queueIndex = 0;
+            runtime.paused = false;
+            elements.pauseButton.textContent = "Ⅱ Pausar";
+        }
+
+        function clearPreview() {
+            stopPlayback();
+            postToPreview("reset");
+            setStatus("Chat limpo.", "success");
+        }
+
+        function sendCustomMessage() {
+            const text = elements.messageText.value.replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 180);
+            const profile = PROFILES[elements.profile.value] || PROFILES.viewer;
+            const platform = ["twitch", "youtube", "kick"].includes(elements.platform.value) ? elements.platform.value : "twitch";
+            if (!text) {
+                setStatus("Digite uma mensagem antes de enviar.", "error");
+                elements.messageText.focus();
+                return;
+            }
+            stopPlayback();
+            postToPreview("add", {
+                message: message(profile.name, text, platform, profile.role, profile.color)
+            });
+            setStatus("Mensagem de teste enviada.", "success");
+        }
+
+        function setControlsEnabled(enabled) {
+            [
+                elements.playButton, elements.pauseButton, elements.clearButton, elements.rebuildButton,
+                elements.sendButton, elements.copyButton
+            ].forEach((element) => { element.disabled = !enabled; });
+        }
+
+        function setStatus(text, tone = "neutral") {
+            elements.status.textContent = text;
+            elements.status.dataset.tone = tone;
+        }
+
+        function renderLoadingCover(title, detail = "", showLoader = false) {
+            const wrapper = document.createElement("div");
+            if (showLoader) {
+                const loader = document.createElement("div");
+                loader.className = "loader";
+                loader.setAttribute("aria-hidden", "true");
+                wrapper.appendChild(loader);
+            }
+            const heading = document.createElement("strong");
+            heading.textContent = title;
+            wrapper.appendChild(heading);
+            if (detail) {
+                const paragraph = document.createElement("p");
+                paragraph.textContent = detail;
+                wrapper.appendChild(paragraph);
+            }
+            elements.loadingCover.replaceChildren(wrapper);
+        }
+
+        function showFatalError(error) {
+            console.error(error);
+            stopPlayback();
+            if (runtime.readyTimer !== null) window.clearTimeout(runtime.readyTimer);
+            runtime.readyTimer = null;
+            runtime.ready = false;
+            setControlsEnabled(false);
+            elements.loadingCover.hidden = false;
+            renderLoadingCover(
+                "Não foi possível abrir a demonstração.",
+                "Publique o GitHub Pages pela branch main e pasta /(root), depois tente novamente."
+            );
+            setStatus(error && error.message ? error.message : "Erro desconhecido ao carregar a demonstração.", "error");
+        }
+    </script>
+</body>
+</html>

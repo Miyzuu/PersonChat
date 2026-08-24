@@ -1,4 +1,4 @@
-/* PersonChat v7.6.0 | Streamlabs Chat Box */
+/* PersonChat v7.7.0 | Streamlabs Chat Box */
 
 /* stylelint-disable no-descending-specificity -- Estados interativos sobrescrevem intencionalmente os seletores-base. */
 

@@ -1,4 +1,4 @@
-// PersonChat v7.6.0 | Streamlabs Chat Box
+// PersonChat v7.7.0 | Streamlabs Chat Box
 // ===== CONFIGURACAO EDITAVEL DO PERSONCHAT =====
 // Ajuste somente este objeto antes de colar o arquivo no widget.
 // STREAMER_NAMES aceita "SeuCanal" ou ["SeuCanal"]. Mantenha o nome entre aspas e sem @.

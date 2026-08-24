@@ -1,6 +1,29 @@
-# PersonChat v7.6.0 — Caixa de Chat Interativa para Streamlabs
+# PersonChat v7.7.0 — Caixa de Chat Interativa para Streamlabs
 
 Tema de chat moderno e responsivo para Twitch, YouTube e Kick, desenvolvido especificamente para a **Caixa de chat nativa da Streamlabs**.
+
+## 🎛️ Demonstração interativa
+
+[▶ Abrir demonstração ao vivo](https://miyzuu.github.io/PersonChat/docs/)
+
+Teste os temas, animações, efeitos de texto, avatares e dimensões antes de instalar. A página também reproduz exemplos de streamer, moderador, raider, reply, mensagens somente com emotes, efeitos de palavras, onda coletiva de GG e Modo Clímax.
+
+A demonstração usa diretamente os três arquivos oficiais do repositório, não acessa chats reais e não solicita conta ou token.
+
+> A demonstração é apenas uma ferramenta de visualização. Para instalar na Streamlabs, continuam sendo necessários somente `HTML.txt`, `CSS.txt` e `JS.txt`.
+
+<details>
+<summary>Como ativar o GitHub Pages deste repositório</summary>
+
+1. Abra **Settings > Pages** no GitHub.
+2. Em **Build and deployment**, selecione **Deploy from a branch**.
+3. Escolha a branch **main** e a pasta **/(root)**.
+4. Salve e aguarde a publicação.
+5. A demonstração ficará disponível em `https://miyzuu.github.io/PersonChat/docs/`.
+
+A publicação precisa usar **/(root)** porque a demonstração carrega `HTML.txt`, `CSS.txt` e `JS.txt` diretamente da raiz.
+
+</details>
 
 ## 📦 Somente três arquivos
 
@@ -40,9 +63,9 @@ Substitua sempre os três arquivos juntos.
 - Avatar real do usuário quando a plataforma disponibiliza a foto.
 - Busca controlada de avatar da Twitch e Kick quando necessário.
 - Avatar local por iniciais se a foto falhar ou não existir.
-- Indicador compacto de resposta acima do nick, com **@usuário** e sem texto redundante.
+- Indicador compacto de resposta acima do nick, com `@usuário` e sem texto redundante.
 - Trecho da mensagem original dentro da caixa de reply quando fornecido pela plataforma.
-- Fallback de reply para mensagens iniciadas por **@usuário**.
+- Fallback de reply para mensagens iniciadas por `@usuário`.
 - Badges e emotes inseridos pela própria Streamlabs.
 - Agrupamento de mensagens consecutivas.
 - Mensagens formadas somente por emotes em tamanho ampliado.
@@ -91,9 +114,9 @@ Quando Twitch ou Kick enviam os dados estruturados do reply, o PersonChat mostra
 - o texto original, quando disponível;
 - a resposta atual sem duplicar a menção inicial.
 
-Visualmente, a faixa usa apenas o ícone de reply, **@usuário** e o trecho original; a expressão **Em resposta a** permanece somente na descrição acessível para leitores de tela.
+Visualmente, a faixa usa apenas o ícone de reply, `@usuário` e o trecho original; a expressão **Em resposta a** permanece somente na descrição acessível para leitores de tela.
 
-Quando esses dados não chegam, uma mensagem iniciada por **@usuário** ativa o fallback visual de reply.
+Quando esses dados não chegam, uma mensagem iniciada por `@usuário` ativa o fallback visual de reply.
 
 ## 🎨 Temas
 
@@ -250,15 +273,15 @@ Exemplo do bloco encontrado no início de **JS.txt**:
 | STREAMER_NAMES                            | Informa os nomes usados para detectar o streamer e suas menções.          |
 | FETCH_TWITCH_AVATAR_WHEN_PLATFORM_UNKNOWN | Tenta recuperar foto Twitch quando faltam metadados.                      |
 | FETCH_KICK_AVATAR                         | Permite recuperar foto pela API pública da Kick.                          |
-| REPLY_FALLBACK_FROM_LEADING_MENTION       | Cria reply visual para mensagens iniciadas por @usuário.                  |
+| REPLY_FALLBACK_FROM_LEADING_MENTION       | Cria reply visual para mensagens iniciadas por `@usuário`.                |
 | EMBED_IMAGES                              | Converte links autorizados em imagens; permanece desligado por segurança. |
 
 ## 🩺 Solução rápida de problemas
 
 - **GG não criou a onda:** o combo precisa de três pessoas diferentes em até dez segundos. Confira o contador `GG 1/3` até `GG 3/3`. Com redução de movimento ativa, o contador permanece, mas a onda não anima.
-- **!cor foi ocultado, mas a cor não apareceu:** substitua os três arquivos pela mesma versão e envie uma nova mensagem. A v7.5.0 corrige a troca tardia entre nome, login, plataforma e ID.
-- **Recursos pararam após preencher o streamer:** use `"STREAMER_NAMES": "SeuCanal"`, sempre com aspas. A v7.5.0 não transforma esse nome em cargo de broadcaster.
-- **Alteração não apareceu no preview:** clique em **Salvar configurações**. O bloco da v7.5.0 é reaplicado a cada execução e não reutiliza a configuração antiga.
+- **!cor foi ocultado, mas a cor não apareceu:** substitua os três arquivos pela mesma versão e envie uma nova mensagem. A correção para a troca tardia entre nome, login, plataforma e ID está incluída na v7.7.0.
+- **Recursos pararam após preencher o streamer:** use `"STREAMER_NAMES": "SeuCanal"`, sempre com aspas. Na v7.7.0, esse nome identifica o destaque do streamer sem transformá-lo em cargo de broadcaster.
+- **Alteração não apareceu no preview da Streamlabs:** clique em **Salvar configurações** no painel da Streamlabs. O bloco da v7.7.0 é reaplicado a cada execução e não reutiliza a configuração antiga.
 
 ## 🌐 Plataformas e emotes
 
