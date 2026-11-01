@@ -1,11 +1,12 @@
-// PersonChat v7.8.0 | Streamlabs Chat Box
+// PersonChat v7.9.0 | Streamlabs Chat Box
 // ===== CONFIGURACAO EDITAVEL DO PERSONCHAT =====
 // Ajuste somente este objeto antes de colar o arquivo no widget.
 // STREAMER_NAMES aceita "SeuCanal" ou ["SeuCanal"]. Mantenha o nome entre aspas e sem @.
 // A atribuicao direta garante que o botao Salvar da Streamlabs aplique esta configuracao atual.
 globalThis.PERSONCHAT_CONFIG = {
     "THEME": "dark-purple",
-    "MESSAGE_ANIMATION": "s-shake",
+    "MESSAGE_ANIMATION": "soft-slide",
+    "S_SHAKE_MODE": "individual",
     "TEXT_EFFECT": "soft-glow",
     "MESSAGE_LINE_LENGTH": "25ch",
     "MAX_MESSAGES": 50,
@@ -101,7 +102,8 @@ globalThis.PERSONCHAT_CONFIG = {
     "off"
   ]);
   var PLATFORM_DISPLAY_MODES = Object.freeze(["combined", "twitch-only", "non-twitch"]);
-  var MESSAGE_ANIMATIONS = Object.freeze(["s-shake", "soft-slide", "float-up", "pop", "minimal", "none"]);
+  var MESSAGE_ANIMATIONS = Object.freeze(["soft-slide", "float-up", "pop", "minimal", "none"]);
+  var S_SHAKE_MODES = Object.freeze(["individual", "full", "off"]);
   var TEXT_EFFECTS = Object.freeze(["none", "soft-glow", "color-pulse"]);
   var WORD_EFFECT_TYPES = Object.freeze(["confetti", "energy-wave", "hype-pulse", "stars", "mono-rain"]);
   var WORD_MATCH_MODES = Object.freeze(["word", "phrase", "exact"]);
@@ -125,7 +127,8 @@ globalThis.PERSONCHAT_CONFIG = {
   });
   var DEFAULT_CONFIG = Object.freeze({
     THEME: "dark-purple",
-    MESSAGE_ANIMATION: "s-shake",
+    MESSAGE_ANIMATION: "soft-slide",
+    S_SHAKE_MODE: "individual",
     TEXT_EFFECT: "soft-glow",
     MESSAGE_LINE_LENGTH: "25ch",
     MAX_MESSAGES: 50,
@@ -399,6 +402,9 @@ globalThis.PERSONCHAT_CONFIG = {
     if ("MESSAGE_ANIMATION" in input && !MESSAGE_ANIMATIONS.includes(String(input.MESSAGE_ANIMATION).trim().toLowerCase())) {
       add("MESSAGE_ANIMATION", "invalid-enum", "Animacao de mensagem invalida.");
     }
+    if ("S_SHAKE_MODE" in input && !S_SHAKE_MODES.includes(String(input.S_SHAKE_MODE).trim().toLowerCase())) {
+      add("S_SHAKE_MODE", "invalid-enum", "Modo de S Shake invalido.");
+    }
     if ("TEXT_EFFECT" in input && !TEXT_EFFECTS.includes(String(input.TEXT_EFFECT).trim().toLowerCase())) {
       add("TEXT_EFFECT", "invalid-enum", "Efeito de texto invalido.");
     }
@@ -468,6 +474,7 @@ globalThis.PERSONCHAT_CONFIG = {
       MESSAGE_ANIMATIONS,
       DEFAULT_CONFIG.MESSAGE_ANIMATION
     );
+    config.S_SHAKE_MODE = asEnum(input.S_SHAKE_MODE, S_SHAKE_MODES, DEFAULT_CONFIG.S_SHAKE_MODE);
     config.TEXT_EFFECT = asEnum(input.TEXT_EFFECT, TEXT_EFFECTS, DEFAULT_CONFIG.TEXT_EFFECT);
     config.FIRST_MESSAGE_MODE = asEnum(
       input.FIRST_MESSAGE_MODE,
@@ -2632,9 +2639,10 @@ globalThis.PERSONCHAT_CONFIG = {
     }
     function applySettings() {
       Array.from(log.classList).filter((token) => token.startsWith("theme-")).forEach((token) => log.classList.remove(token));
-      Array.from(log.classList).filter((token) => token.startsWith("motion-") || token.startsWith("text-effect-")).forEach((token) => log.classList.remove(token));
+      Array.from(log.classList).filter((token) => token.startsWith("motion-") || token.startsWith("text-effect-") || token.startsWith("s-shake-")).forEach((token) => log.classList.remove(token));
       log.classList.add("theme-" + config.THEME);
       log.classList.add("motion-" + config.MESSAGE_ANIMATION);
+      log.classList.add("s-shake-" + config.S_SHAKE_MODE);
       log.classList.add("text-effect-" + config.TEXT_EFFECT);
       log.style.setProperty("--message-line-length", config.MESSAGE_LINE_LENGTH);
       log.classList.toggle("show-platform-badges", config.SHOW_PLATFORM_BADGE);

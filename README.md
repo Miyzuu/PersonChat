@@ -164,14 +164,19 @@ O streamer pode trocar o comando em **VIEWER_COLOR_COMMAND**, desativar o recurs
 
 ### Animações
 
-Edite **MESSAGE_ANIMATION** para escolher a animação das mensagens:
+Edite **MESSAGE_ANIMATION** para escolher a animação de entrada das mensagens:
 
-- **s-shake** — tremor suave e permanente, individual e dessincronizado;
 - **soft-slide** — deslizamento suave;
 - **float-up** — subida leve;
 - **pop** — expansão curta;
 - **minimal** — apenas fade;
 - **none** — sem animação.
+
+Edite **S_SHAKE_MODE** para controlar o tremor permanente:
+
+- **individual** — cada mensagem treme separadamente;
+- **full** — o chat inteiro treme como um único bloco;
+- **off** — desativa o S Shake.
 
 Edite **TEXT_EFFECT** para usar **none**, **soft-glow** ou **color-pulse**.
 
@@ -218,7 +223,8 @@ Exemplo do bloco encontrado no início de **JS.txt**:
 
     globalThis.PERSONCHAT_CONFIG = {
         THEME: "dark-purple",
-        MESSAGE_ANIMATION: "s-shake",
+        MESSAGE_ANIMATION: "soft-slide",
+        S_SHAKE_MODE: "individual",
         TEXT_EFFECT: "soft-glow",
         MESSAGE_LINE_LENGTH: "25ch",
         MAX_MESSAGES: 50,
@@ -254,6 +260,7 @@ Exemplo do bloco encontrado no início de **JS.txt**:
 | ----------------------------------------- | ------------------------------------------------------------------------- |
 | THEME                                     | Escolhe o tema visual.                                                    |
 | MESSAGE_ANIMATION                         | Escolhe a animação aplicada às mensagens.                                 |
+| S_SHAKE_MODE                              | Escolhe S Shake individual, chat completo ou desativado.                  |
 | TEXT_EFFECT                               | Escolhe o efeito curto aplicado ao texto.                                 |
 | MESSAGE_LINE_LENGTH                       | Controla a largura aproximada do texto.                                   |
 | MAX_MESSAGES                              | Limita as mensagens mantidas na tela.                                     |

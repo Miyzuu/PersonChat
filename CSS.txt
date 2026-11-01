@@ -1,4 +1,4 @@
-/* PersonChat v7.8.0 | Streamlabs Chat Box */
+/* PersonChat v7.9.0 | Streamlabs Chat Box */
 
 /* stylelint-disable no-descending-specificity -- Estados interativos sobrescrevem intencionalmente os seletores-base. */
 
@@ -502,16 +502,20 @@ body {
     animation-duration: .25s;
 }
 
-#log.motion-s-shake .message-row:not(.fadeOutUp) .message-content {
+#log.s-shake-individual .message-row:not(.fadeOutUp) .message-content {
     animation: messageSShake 4.8s ease-in-out infinite;
 }
 
-#log.motion-s-shake .message-row:nth-child(3n + 2) .message-content {
+#log.s-shake-individual .message-row:nth-child(3n + 2) .message-content {
     animation-delay: -1.6s;
 }
 
-#log.motion-s-shake .message-row:nth-child(3n) .message-content {
+#log.s-shake-individual .message-row:nth-child(3n) .message-content {
     animation-delay: -3.2s;
+}
+
+#log.s-shake-full {
+    animation: messageSShake 4.8s ease-in-out infinite;
 }
 
 #log.motion-none .message-row:not(.fadeOutUp) {
@@ -1154,6 +1158,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    #log,
     #log *,
     #log *::before,
     #log *::after {
