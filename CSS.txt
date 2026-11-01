@@ -1,4 +1,4 @@
-/* PersonChat v7.9.0 | Streamlabs Chat Box */
+/* PersonChat v7.10.0 | Streamlabs Chat Box */
 
 /* stylelint-disable no-descending-specificity -- Estados interativos sobrescrevem intencionalmente os seletores-base. */
 
@@ -90,14 +90,15 @@
     to   { opacity: 1; }
 }
 
-@keyframes messageSShake {
-    0%, 14%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
-    2%            { transform: translate3d(1px, -1px, 0) rotate(-0.15deg); }
-    4%            { transform: translate3d(-1px, 1px, 0) rotate(0.15deg); }
-    6%            { transform: translate3d(2px, 0, 0) rotate(-0.1deg); }
-    8%            { transform: translate3d(-1px, -1px, 0) rotate(0.1deg); }
-    10%           { transform: translate3d(1px, 1px, 0) rotate(-0.05deg); }
-    12%           { transform: translate3d(-1px, 0, 0) rotate(0.05deg); }
+@keyframes messageSWave {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    12.5%     { transform: translate3d(calc(var(--s-wave-distance) * 0.707), 0, 0); }
+    25%       { transform: translate3d(var(--s-wave-distance), 0, 0); }
+    37.5%     { transform: translate3d(calc(var(--s-wave-distance) * 0.707), 0, 0); }
+    50%       { transform: translate3d(0, 0, 0); }
+    62.5%     { transform: translate3d(calc(var(--s-wave-distance) * -0.707), 0, 0); }
+    75%       { transform: translate3d(calc(var(--s-wave-distance) * -1), 0, 0); }
+    87.5%     { transform: translate3d(calc(var(--s-wave-distance) * -0.707), 0, 0); }
 }
 
 @keyframes roleGradientWave {
@@ -502,20 +503,18 @@ body {
     animation-duration: .25s;
 }
 
-#log.s-shake-individual .message-row:not(.fadeOutUp) .message-content {
-    animation: messageSShake 4.8s ease-in-out infinite;
-}
+#log.s-shake-intensity-soft   { --s-wave-distance: 2px; }
+#log.s-shake-intensity-medium { --s-wave-distance: 4px; }
+#log.s-shake-intensity-strong { --s-wave-distance: 6px; }
 
-#log.s-shake-individual .message-row:nth-child(3n + 2) .message-content {
-    animation-delay: -1.6s;
-}
-
-#log.s-shake-individual .message-row:nth-child(3n) .message-content {
-    animation-delay: -3.2s;
+#log.s-shake-individual .message-row:not(.fadeOutUp) > .avatar,
+#log.s-shake-individual .message-row:not(.fadeOutUp) > .message-content {
+    animation: messageSWave 6s linear infinite;
+    animation-delay: var(--s-wave-delay, 0s);
 }
 
 #log.s-shake-full {
-    animation: messageSShake 4.8s ease-in-out infinite;
+    animation: messageSWave 6s linear infinite;
 }
 
 #log.motion-none .message-row:not(.fadeOutUp) {
@@ -1129,6 +1128,50 @@ body {
 .fadeOutUp {
     pointer-events: none;
     animation: fadeOut .5s ease forwards;
+}
+
+/* ===== MODO ALTA PERFORMANCE ===== */
+#log.high-performance-mode .message-content {
+    width: fit-content;
+    max-width: min(var(--message-line-length), calc(100vw - 120px));
+    padding: 10px 14px 12px;
+    border-radius: 12px;
+    background: var(--chat-message-bg);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+}
+
+#log.high-performance-mode .message-header-row {
+    margin: 0 0 4px;
+}
+
+#log.high-performance-mode .message-header {
+    padding: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+    animation: none !important;
+}
+
+#log.high-performance-mode .user-message {
+    width: auto;
+    max-width: 100%;
+    padding: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+#log.high-performance-mode .message-decorators {
+    margin-left: 0;
+}
+
+#log.high-performance-mode .user-name {
+    color: var(--row-accent) !important;
+    font-size: 15px;
+}
+
+#log.high-performance-mode .chat-time {
+    font-size: 11px;
 }
 
 @media (width <= 520px) {

@@ -172,13 +172,23 @@ Edite **MESSAGE_ANIMATION** para escolher a animação de entrada das mensagens:
 - **minimal** — apenas fade;
 - **none** — sem animação.
 
-Edite **S_SHAKE_MODE** para controlar o tremor permanente:
+Edite **S_SHAKE_MODE** para controlar a onda permanente:
 
-- **individual** — cada mensagem treme separadamente;
-- **full** — o chat inteiro treme como um único bloco;
-- **off** — desativa o S Shake.
+- **individual** — move cada mensagem em cadência e reinicia a sequência a cada quatro;
+- **full** — move o chat inteiro como um único bloco;
+- **off** — desativa a onda.
+
+Edite **S_SHAKE_INTENSITY** para escolher o deslocamento horizontal:
+
+- **soft** — 2px;
+- **medium** — 4px;
+- **strong** — 6px.
 
 Edite **TEXT_EFFECT** para usar **none**, **soft-glow** ou **color-pulse**.
+
+### Modo alta performance
+
+Use **HIGH_PERFORMANCE_MODE: true** para unir o nick e a mensagem em uma única caixa compacta. Avatar, tema, cores, badges e recursos do chat continuam disponíveis; somente as duas caixas sobrepostas são substituídas por um cartão simples. Use `false` para manter o visual completo.
 
 ## 🎉 Efeitos interativos
 
@@ -225,6 +235,7 @@ Exemplo do bloco encontrado no início de **JS.txt**:
         THEME: "dark-purple",
         MESSAGE_ANIMATION: "soft-slide",
         S_SHAKE_MODE: "individual",
+        S_SHAKE_INTENSITY: "strong",
         TEXT_EFFECT: "soft-glow",
         MESSAGE_LINE_LENGTH: "25ch",
         MAX_MESSAGES: 50,
@@ -235,6 +246,7 @@ Exemplo do bloco encontrado no início de **JS.txt**:
         SHOW_EVENT_BANNERS: false,
         ROLE_GRADIENTS_ENABLED: true,
         SHOW_USER_AVATAR: "yes",
+        HIGH_PERFORMANCE_MODE: false,
         VIEWER_COLORS_ENABLED: true,
         VIEWER_COLOR_COMMAND: "!cor",
         VIEWER_COLOR_EXPIRY: 2592000000,
@@ -261,6 +273,7 @@ Exemplo do bloco encontrado no início de **JS.txt**:
 | THEME                                     | Escolhe o tema visual.                                                    |
 | MESSAGE_ANIMATION                         | Escolhe a animação aplicada às mensagens.                                 |
 | S_SHAKE_MODE                              | Escolhe S Shake individual, chat completo ou desativado.                  |
+| S_SHAKE_INTENSITY                         | Escolhe deslocamento suave (2px), médio (4px) ou forte (6px).             |
 | TEXT_EFFECT                               | Escolhe o efeito curto aplicado ao texto.                                 |
 | MESSAGE_LINE_LENGTH                       | Controla a largura aproximada do texto.                                   |
 | MAX_MESSAGES                              | Limita as mensagens mantidas na tela.                                     |
@@ -270,6 +283,7 @@ Exemplo do bloco encontrado no início de **JS.txt**:
 | EMOTE_ONLY_MODE                           | Amplia mensagens compostas somente por emotes.                            |
 | ROLE_GRADIENTS_ENABLED                    | Ativa degradês animados por cargo.                                        |
 | SHOW_USER_AVATAR                         | Use yes para mostrar fotos ou no para ocultá-las e poupar requisições.    |
+| HIGH_PERFORMANCE_MODE                    | Une nick e texto em uma única caixa simples, sem alterar avatar e cores.  |
 | VIEWER_COLORS_ENABLED                     | Permite ao público escolher a cor do próprio nick com !cor.               |
 | VIEWER_COLOR_COMMAND                      | Define o comando reservado para selecionar uma cor pessoal.               |
 | VIEWER_COLOR_EXPIRY                       | Define por quanto tempo a preferência permanece salva, em milissegundos.  |

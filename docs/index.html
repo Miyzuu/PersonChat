@@ -677,11 +677,20 @@
                         </div>
 
                         <div class="field">
-                            <label for="shakeMode">S Shake</label>
+                            <label for="shakeMode">S Wave</label>
                             <select id="shakeMode">
                                 <option value="individual">Individual</option>
                                 <option value="full">Chat completo</option>
                                 <option value="off">Desativado</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="shakeIntensity">Intensidade</label>
+                            <select id="shakeIntensity">
+                                <option value="soft">Suave · 2px</option>
+                                <option value="medium">Média · 4px</option>
+                                <option value="strong" selected>Forte · 6px</option>
                             </select>
                         </div>
 
@@ -714,6 +723,10 @@
                     </div>
 
                     <div class="toggle-list" aria-label="Recursos visuais">
+                        <label class="toggle" for="highPerformance">
+                            <span>Modo alta performance</span>
+                            <input id="highPerformance" type="checkbox">
+                        </label>
                         <label class="toggle" for="showAvatar">
                             <span>Mostrar avatar</span>
                             <input id="showAvatar" type="checkbox" checked>
@@ -827,7 +840,7 @@
     <script>
         "use strict";
 
-        const EXPECTED_VERSION = "7.9.0";
+        const EXPECTED_VERSION = "7.10.0";
         const BRIDGE_SCOPE = "personchat-preview-v1";
         const THEMES = Object.freeze([
             "pink-gold", "dark-purple", "kick-green", "youtube-red", "clean-white", "ocean-blue",
@@ -836,6 +849,7 @@
         ]);
         const ANIMATIONS = Object.freeze(["soft-slide", "float-up", "pop", "minimal", "none"]);
         const SHAKE_MODES = Object.freeze(["individual", "full", "off"]);
+        const SHAKE_INTENSITIES = Object.freeze(["soft", "medium", "strong"]);
         const TEXT_EFFECTS = Object.freeze(["none", "soft-glow", "color-pulse"]);
         const LINE_LENGTHS = Object.freeze(["25ch", "38ch", "50ch"]);
         const VIEWPORTS = Object.freeze({
@@ -859,11 +873,13 @@
             theme: document.getElementById("theme"),
             messageAnimation: document.getElementById("messageAnimation"),
             shakeMode: document.getElementById("shakeMode"),
+            shakeIntensity: document.getElementById("shakeIntensity"),
             textEffect: document.getElementById("textEffect"),
             lineLength: document.getElementById("lineLength"),
             viewport: document.getElementById("viewport"),
             viewportLabel: document.getElementById("viewportLabel"),
             showAvatar: document.getElementById("showAvatar"),
+            highPerformance: document.getElementById("highPerformance"),
             roleGradients: document.getElementById("roleGradients"),
             showBadges: document.getElementById("showBadges"),
             scenario: document.getElementById("scenario"),
@@ -905,6 +921,7 @@
             const theme = THEMES.includes(params.get("theme")) ? params.get("theme") : "dark-purple";
             const animation = ANIMATIONS.includes(params.get("animation")) ? params.get("animation") : "soft-slide";
             const shakeMode = SHAKE_MODES.includes(params.get("shake")) ? params.get("shake") : "individual";
+            const shakeIntensity = SHAKE_INTENSITIES.includes(params.get("intensity")) ? params.get("intensity") : "strong";
             const textEffect = TEXT_EFFECTS.includes(params.get("text")) ? params.get("text") : "soft-glow";
             const lineLength = LINE_LENGTHS.includes(params.get("width")) ? params.get("width") : "25ch";
             const viewport = Object.hasOwn(VIEWPORTS, params.get("viewport")) ? params.get("viewport") : "400x700";
@@ -912,9 +929,11 @@
                 theme,
                 animation,
                 shakeMode,
+                shakeIntensity,
                 textEffect,
                 lineLength,
                 viewport,
+                highPerformance: params.get("performance") === "yes",
                 showAvatar: params.get("avatar") !== "no",
                 roleGradients: params.get("gradients") !== "no",
                 showBadges: params.get("badges") !== "no"
@@ -925,9 +944,11 @@
             elements.theme.value = state.theme;
             elements.messageAnimation.value = state.animation;
             elements.shakeMode.value = state.shakeMode;
+            elements.shakeIntensity.value = state.shakeIntensity;
             elements.textEffect.value = state.textEffect;
             elements.lineLength.value = state.lineLength;
             elements.viewport.value = state.viewport;
+            elements.highPerformance.checked = state.highPerformance;
             elements.showAvatar.checked = state.showAvatar;
             elements.roleGradients.checked = state.roleGradients;
             elements.showBadges.checked = state.showBadges;
@@ -938,9 +959,11 @@
                 elements.theme,
                 elements.messageAnimation,
                 elements.shakeMode,
+                elements.shakeIntensity,
                 elements.textEffect,
                 elements.lineLength,
                 elements.viewport,
+                elements.highPerformance,
                 elements.showAvatar,
                 elements.roleGradients,
                 elements.showBadges
@@ -1002,8 +1025,10 @@
                 THEME: state.theme,
                 MESSAGE_ANIMATION: state.animation,
                 S_SHAKE_MODE: state.shakeMode,
+                S_SHAKE_INTENSITY: state.shakeIntensity,
                 TEXT_EFFECT: state.textEffect,
                 MESSAGE_LINE_LENGTH: state.lineLength,
+                HIGH_PERFORMANCE_MODE: state.highPerformance,
                 SHOW_USER_AVATAR: state.showAvatar ? "yes" : "no",
                 ROLE_GRADIENTS_ENABLED: state.roleGradients,
                 SHOW_PLATFORM_BADGE: state.showBadges,
@@ -1121,6 +1146,7 @@
                     const ALLOWED_THEMES = new Set(${JSON.stringify(Array.from(THEMES))});
                     const ALLOWED_ANIMATIONS = new Set(${JSON.stringify(Array.from(ANIMATIONS))});
                     const ALLOWED_SHAKE_MODES = new Set(${JSON.stringify(Array.from(SHAKE_MODES))});
+                    const ALLOWED_SHAKE_INTENSITIES = new Set(${JSON.stringify(Array.from(SHAKE_INTENSITIES))});
                     const ALLOWED_TEXT_EFFECTS = new Set(${JSON.stringify(Array.from(TEXT_EFFECTS))});
                     const ALLOWED_LINE_LENGTHS = new Set(${JSON.stringify(Array.from(LINE_LENGTHS))});
                     const ALLOWED_PLATFORMS = new Set(["twitch", "youtube", "kick"]);
@@ -1145,10 +1171,12 @@
                         const theme = ALLOWED_THEMES.has(input.theme) ? input.theme : "dark-purple";
                         const animation = ALLOWED_ANIMATIONS.has(input.animation) ? input.animation : "soft-slide";
                         const shakeMode = ALLOWED_SHAKE_MODES.has(input.shakeMode) ? input.shakeMode : "individual";
+                        const shakeIntensity = ALLOWED_SHAKE_INTENSITIES.has(input.shakeIntensity) ? input.shakeIntensity : "strong";
                         const textEffect = ALLOWED_TEXT_EFFECTS.has(input.textEffect) ? input.textEffect : "soft-glow";
                         const lineLength = ALLOWED_LINE_LENGTHS.has(input.lineLength) ? input.lineLength : "25ch";
-                        log.classList.add("theme-" + theme, "motion-" + animation, "text-effect-" + textEffect, "s-shake-" + shakeMode);
+                        log.classList.add("theme-" + theme, "motion-" + animation, "text-effect-" + textEffect, "s-shake-" + shakeMode, "s-shake-intensity-" + shakeIntensity);
                         log.classList.toggle("show-user-avatars", input.showAvatar === true);
+                        log.classList.toggle("high-performance-mode", input.highPerformance === true);
                         log.classList.toggle("role-gradients-enabled", input.roleGradients === true);
                         log.classList.toggle("show-platform-badges", input.showBadges === true);
                         log.classList.toggle("show-role-pills", input.showBadges === true);
@@ -1254,8 +1282,10 @@
                     theme: state.theme,
                     animation: state.animation,
                     shakeMode: state.shakeMode,
+                    shakeIntensity: state.shakeIntensity,
                     textEffect: state.textEffect,
                     lineLength: state.lineLength,
+                    highPerformance: state.highPerformance,
                     showAvatar: state.showAvatar,
                     roleGradients: state.roleGradients,
                     showBadges: state.showBadges
@@ -1267,9 +1297,11 @@
             state.theme = THEMES.includes(elements.theme.value) ? elements.theme.value : "dark-purple";
             state.animation = ANIMATIONS.includes(elements.messageAnimation.value) ? elements.messageAnimation.value : "soft-slide";
             state.shakeMode = SHAKE_MODES.includes(elements.shakeMode.value) ? elements.shakeMode.value : "individual";
+            state.shakeIntensity = SHAKE_INTENSITIES.includes(elements.shakeIntensity.value) ? elements.shakeIntensity.value : "strong";
             state.textEffect = TEXT_EFFECTS.includes(elements.textEffect.value) ? elements.textEffect.value : "soft-glow";
             state.lineLength = LINE_LENGTHS.includes(elements.lineLength.value) ? elements.lineLength.value : "25ch";
             state.viewport = Object.hasOwn(VIEWPORTS, elements.viewport.value) ? elements.viewport.value : "400x700";
+            state.highPerformance = elements.highPerformance.checked;
             state.showAvatar = elements.showAvatar.checked;
             state.roleGradients = elements.roleGradients.checked;
             state.showBadges = elements.showBadges.checked;
@@ -1292,9 +1324,11 @@
             params.set("theme", state.theme);
             params.set("animation", state.animation);
             params.set("shake", state.shakeMode);
+            params.set("intensity", state.shakeIntensity);
             params.set("text", state.textEffect);
             params.set("width", state.lineLength);
             params.set("viewport", state.viewport);
+            params.set("performance", state.highPerformance ? "yes" : "no");
             params.set("avatar", state.showAvatar ? "yes" : "no");
             params.set("gradients", state.roleGradients ? "yes" : "no");
             params.set("badges", state.showBadges ? "yes" : "no");

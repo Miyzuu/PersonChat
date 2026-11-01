@@ -1,4 +1,4 @@
-// PersonChat v7.9.0 | Streamlabs Chat Box
+// PersonChat v7.10.0 | Streamlabs Chat Box
 // ===== CONFIGURACAO EDITAVEL DO PERSONCHAT =====
 // Ajuste somente este objeto antes de colar o arquivo no widget.
 // STREAMER_NAMES aceita "SeuCanal" ou ["SeuCanal"]. Mantenha o nome entre aspas e sem @.
@@ -7,6 +7,7 @@ globalThis.PERSONCHAT_CONFIG = {
     "THEME": "dark-purple",
     "MESSAGE_ANIMATION": "soft-slide",
     "S_SHAKE_MODE": "individual",
+    "S_SHAKE_INTENSITY": "strong",
     "TEXT_EFFECT": "soft-glow",
     "MESSAGE_LINE_LENGTH": "25ch",
     "MAX_MESSAGES": 50,
@@ -22,6 +23,7 @@ globalThis.PERSONCHAT_CONFIG = {
     "SHOW_EVENT_BANNERS": false,
     "ROLE_GRADIENTS_ENABLED": true,
     "SHOW_USER_AVATAR": "yes",
+    "HIGH_PERFORMANCE_MODE": false,
     "VIEWER_COLORS_ENABLED": true,
     "VIEWER_COLOR_COMMAND": "!cor",
     "VIEWER_COLOR_STORAGE_KEY": "personchat_viewer_colors_v1",
@@ -104,6 +106,7 @@ globalThis.PERSONCHAT_CONFIG = {
   var PLATFORM_DISPLAY_MODES = Object.freeze(["combined", "twitch-only", "non-twitch"]);
   var MESSAGE_ANIMATIONS = Object.freeze(["soft-slide", "float-up", "pop", "minimal", "none"]);
   var S_SHAKE_MODES = Object.freeze(["individual", "full", "off"]);
+  var S_SHAKE_INTENSITIES = Object.freeze(["soft", "medium", "strong"]);
   var TEXT_EFFECTS = Object.freeze(["none", "soft-glow", "color-pulse"]);
   var WORD_EFFECT_TYPES = Object.freeze(["confetti", "energy-wave", "hype-pulse", "stars", "mono-rain"]);
   var WORD_MATCH_MODES = Object.freeze(["word", "phrase", "exact"]);
@@ -129,6 +132,7 @@ globalThis.PERSONCHAT_CONFIG = {
     THEME: "dark-purple",
     MESSAGE_ANIMATION: "soft-slide",
     S_SHAKE_MODE: "individual",
+    S_SHAKE_INTENSITY: "strong",
     TEXT_EFFECT: "soft-glow",
     MESSAGE_LINE_LENGTH: "25ch",
     MAX_MESSAGES: 50,
@@ -139,6 +143,7 @@ globalThis.PERSONCHAT_CONFIG = {
     SHOW_EVENT_BANNERS: false,
     ROLE_GRADIENTS_ENABLED: true,
     SHOW_USER_AVATAR: true,
+    HIGH_PERFORMANCE_MODE: false,
     VIEWER_COLORS_ENABLED: true,
     VIEWER_COLOR_COMMAND: "!cor",
     VIEWER_COLOR_STORAGE_KEY: "personchat_viewer_colors_v1",
@@ -195,6 +200,7 @@ globalThis.PERSONCHAT_CONFIG = {
     "SHOW_EVENT_BANNERS",
     "ROLE_GRADIENTS_ENABLED",
     "SHOW_USER_AVATAR",
+    "HIGH_PERFORMANCE_MODE",
     "VIEWER_COLORS_ENABLED",
     "EMOTE_ONLY_MODE",
     "GROUP_REPEATED_MESSAGES",
@@ -405,6 +411,9 @@ globalThis.PERSONCHAT_CONFIG = {
     if ("S_SHAKE_MODE" in input && !S_SHAKE_MODES.includes(String(input.S_SHAKE_MODE).trim().toLowerCase())) {
       add("S_SHAKE_MODE", "invalid-enum", "Modo de S Shake invalido.");
     }
+    if ("S_SHAKE_INTENSITY" in input && !S_SHAKE_INTENSITIES.includes(String(input.S_SHAKE_INTENSITY).trim().toLowerCase())) {
+      add("S_SHAKE_INTENSITY", "invalid-enum", "Intensidade de S Shake invalida.");
+    }
     if ("TEXT_EFFECT" in input && !TEXT_EFFECTS.includes(String(input.TEXT_EFFECT).trim().toLowerCase())) {
       add("TEXT_EFFECT", "invalid-enum", "Efeito de texto invalido.");
     }
@@ -475,6 +484,7 @@ globalThis.PERSONCHAT_CONFIG = {
       DEFAULT_CONFIG.MESSAGE_ANIMATION
     );
     config.S_SHAKE_MODE = asEnum(input.S_SHAKE_MODE, S_SHAKE_MODES, DEFAULT_CONFIG.S_SHAKE_MODE);
+    config.S_SHAKE_INTENSITY = asEnum(input.S_SHAKE_INTENSITY, S_SHAKE_INTENSITIES, DEFAULT_CONFIG.S_SHAKE_INTENSITY);
     config.TEXT_EFFECT = asEnum(input.TEXT_EFFECT, TEXT_EFFECTS, DEFAULT_CONFIG.TEXT_EFFECT);
     config.FIRST_MESSAGE_MODE = asEnum(
       input.FIRST_MESSAGE_MODE,
@@ -2596,6 +2606,7 @@ globalThis.PERSONCHAT_CONFIG = {
     let climaxCooldownUntil = 0;
     let lastRepeatedPrune = 0;
     let themeHeaderColors = null;
+    let waveMessageIndex = 0;
     const sessionSeen = /* @__PURE__ */ new Set();
     const queuedRows = /* @__PURE__ */ new WeakSet();
     const queuedRefreshRows = /* @__PURE__ */ new WeakSet();
@@ -2643,6 +2654,7 @@ globalThis.PERSONCHAT_CONFIG = {
       log.classList.add("theme-" + config.THEME);
       log.classList.add("motion-" + config.MESSAGE_ANIMATION);
       log.classList.add("s-shake-" + config.S_SHAKE_MODE);
+      log.classList.add("s-shake-intensity-" + config.S_SHAKE_INTENSITY);
       log.classList.add("text-effect-" + config.TEXT_EFFECT);
       log.style.setProperty("--message-line-length", config.MESSAGE_LINE_LENGTH);
       log.classList.toggle("show-platform-badges", config.SHOW_PLATFORM_BADGE);
@@ -2651,6 +2663,7 @@ globalThis.PERSONCHAT_CONFIG = {
       log.classList.toggle("compact-repeat-enabled", config.HIDE_REPEATED_AVATAR_AND_NAME);
       log.classList.toggle("role-gradients-enabled", config.ROLE_GRADIENTS_ENABLED);
       log.classList.toggle("show-user-avatars", config.SHOW_USER_AVATAR);
+      log.classList.toggle("high-performance-mode", config.HIGH_PERFORMANCE_MODE);
       log.classList.toggle("viewer-colors-enabled", config.VIEWER_COLORS_ENABLED);
       themeHeaderColors = null;
     }
@@ -3338,6 +3351,12 @@ globalThis.PERSONCHAT_CONFIG = {
         trimMessages();
         return true;
       }
+      if (row.dataset.personchatWavePhase == null) {
+        const phase = waveMessageIndex % 4;
+        row.dataset.personchatWavePhase = String(phase);
+        row.style.setProperty("--s-wave-delay", phase ? "-" + phase * 0.42 + "s" : "0s");
+        waveMessageIndex += 1;
+      }
       applyMessageChain(row, metadata.identity.key, metadata.hasSpecialState);
       embedImages(row, config, timers);
       if (config.HIDE_AFTER > 0) {
@@ -3450,6 +3469,7 @@ globalThis.PERSONCHAT_CONFIG = {
       destroyed = false;
       lifecycleVersion += 1;
       started = true;
+      waveMessageIndex = 0;
       effectsEngine = createEffectsEngine({ documentRef, windowRef, config, timers, now, log });
       applySettings();
       documentRef.addEventListener("onEventReceived", onStreamlabsEvent);
@@ -3459,6 +3479,8 @@ globalThis.PERSONCHAT_CONFIG = {
         delete row.dataset.personchatEffect;
         delete row.dataset.personchatGgCharge;
         delete row.dataset.personchatGgWindow;
+        delete row.dataset.personchatWavePhase;
+        row.style.removeProperty("--s-wave-delay");
         row.querySelector("[data-personchat-gg-charge]")?.remove();
         row.querySelector("[data-personchat-streamer-mention]")?.remove();
         rowStates.set(row, { historical: true });
