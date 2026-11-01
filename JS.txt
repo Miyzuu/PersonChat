@@ -1,11 +1,11 @@
-// PersonChat v7.7.0 | Streamlabs Chat Box
+// PersonChat v7.8.0 | Streamlabs Chat Box
 // ===== CONFIGURACAO EDITAVEL DO PERSONCHAT =====
 // Ajuste somente este objeto antes de colar o arquivo no widget.
 // STREAMER_NAMES aceita "SeuCanal" ou ["SeuCanal"]. Mantenha o nome entre aspas e sem @.
 // A atribuicao direta garante que o botao Salvar da Streamlabs aplique esta configuracao atual.
 globalThis.PERSONCHAT_CONFIG = {
     "THEME": "dark-purple",
-    "MESSAGE_ANIMATION": "soft-slide",
+    "MESSAGE_ANIMATION": "s-shake",
     "TEXT_EFFECT": "soft-glow",
     "MESSAGE_LINE_LENGTH": "25ch",
     "MAX_MESSAGES": 50,
@@ -101,7 +101,7 @@ globalThis.PERSONCHAT_CONFIG = {
     "off"
   ]);
   var PLATFORM_DISPLAY_MODES = Object.freeze(["combined", "twitch-only", "non-twitch"]);
-  var MESSAGE_ANIMATIONS = Object.freeze(["soft-slide", "float-up", "pop", "minimal", "none"]);
+  var MESSAGE_ANIMATIONS = Object.freeze(["s-shake", "soft-slide", "float-up", "pop", "minimal", "none"]);
   var TEXT_EFFECTS = Object.freeze(["none", "soft-glow", "color-pulse"]);
   var WORD_EFFECT_TYPES = Object.freeze(["confetti", "energy-wave", "hype-pulse", "stars", "mono-rain"]);
   var WORD_MATCH_MODES = Object.freeze(["word", "phrase", "exact"]);
@@ -125,7 +125,7 @@ globalThis.PERSONCHAT_CONFIG = {
   });
   var DEFAULT_CONFIG = Object.freeze({
     THEME: "dark-purple",
-    MESSAGE_ANIMATION: "soft-slide",
+    MESSAGE_ANIMATION: "s-shake",
     TEXT_EFFECT: "soft-glow",
     MESSAGE_LINE_LENGTH: "25ch",
     MAX_MESSAGES: 50,

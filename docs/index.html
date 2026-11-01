@@ -666,8 +666,9 @@
                         </div>
 
                         <div class="field">
-                            <label for="messageAnimation">Entrada</label>
+                            <label for="messageAnimation">Animação</label>
                             <select id="messageAnimation">
+                                <option value="s-shake">S Shake</option>
                                 <option value="soft-slide">Soft Slide</option>
                                 <option value="float-up">Float Up</option>
                                 <option value="pop">Pop</option>
@@ -818,14 +819,14 @@
     <script>
         "use strict";
 
-        const EXPECTED_VERSION = "7.7.0";
+        const EXPECTED_VERSION = "7.8.0";
         const BRIDGE_SCOPE = "personchat-preview-v1";
         const THEMES = Object.freeze([
             "pink-gold", "dark-purple", "kick-green", "youtube-red", "clean-white", "ocean-blue",
             "neon-cyber", "sunset-orange", "emerald-night", "royal-blue", "cherry-black",
             "lavender-dream", "gold-black", "ice-blue", "pastel-candy", "black-white"
         ]);
-        const ANIMATIONS = Object.freeze(["soft-slide", "float-up", "pop", "minimal", "none"]);
+        const ANIMATIONS = Object.freeze(["s-shake", "soft-slide", "float-up", "pop", "minimal", "none"]);
         const TEXT_EFFECTS = Object.freeze(["none", "soft-glow", "color-pulse"]);
         const LINE_LENGTHS = Object.freeze(["25ch", "38ch", "50ch"]);
         const VIEWPORTS = Object.freeze({
@@ -892,7 +893,7 @@
         function readStateFromUrl() {
             const params = new URLSearchParams(window.location.search);
             const theme = THEMES.includes(params.get("theme")) ? params.get("theme") : "dark-purple";
-            const animation = ANIMATIONS.includes(params.get("animation")) ? params.get("animation") : "soft-slide";
+            const animation = ANIMATIONS.includes(params.get("animation")) ? params.get("animation") : "s-shake";
             const textEffect = TEXT_EFFECTS.includes(params.get("text")) ? params.get("text") : "soft-glow";
             const lineLength = LINE_LENGTHS.includes(params.get("width")) ? params.get("width") : "25ch";
             const viewport = Object.hasOwn(VIEWPORTS, params.get("viewport")) ? params.get("viewport") : "400x700";
@@ -1126,7 +1127,7 @@
                             }
                         });
                         const theme = ALLOWED_THEMES.has(input.theme) ? input.theme : "dark-purple";
-                        const animation = ALLOWED_ANIMATIONS.has(input.animation) ? input.animation : "soft-slide";
+                        const animation = ALLOWED_ANIMATIONS.has(input.animation) ? input.animation : "s-shake";
                         const textEffect = ALLOWED_TEXT_EFFECTS.has(input.textEffect) ? input.textEffect : "soft-glow";
                         const lineLength = ALLOWED_LINE_LENGTHS.has(input.lineLength) ? input.lineLength : "25ch";
                         log.classList.add("theme-" + theme, "motion-" + animation, "text-effect-" + textEffect);
@@ -1246,7 +1247,7 @@
 
         function handleStateChange() {
             state.theme = THEMES.includes(elements.theme.value) ? elements.theme.value : "dark-purple";
-            state.animation = ANIMATIONS.includes(elements.messageAnimation.value) ? elements.messageAnimation.value : "soft-slide";
+            state.animation = ANIMATIONS.includes(elements.messageAnimation.value) ? elements.messageAnimation.value : "s-shake";
             state.textEffect = TEXT_EFFECTS.includes(elements.textEffect.value) ? elements.textEffect.value : "soft-glow";
             state.lineLength = LINE_LENGTHS.includes(elements.lineLength.value) ? elements.lineLength.value : "25ch";
             state.viewport = Object.hasOwn(VIEWPORTS, elements.viewport.value) ? elements.viewport.value : "400x700";

@@ -164,8 +164,9 @@ O streamer pode trocar o comando em **VIEWER_COLOR_COMMAND**, desativar o recurs
 
 ### Animações
 
-Edite **MESSAGE_ANIMATION** para escolher a entrada das mensagens:
+Edite **MESSAGE_ANIMATION** para escolher a animação das mensagens:
 
+- **s-shake** — tremor suave e permanente, individual e dessincronizado;
 - **soft-slide** — deslizamento suave;
 - **float-up** — subida leve;
 - **pop** — expansão curta;
@@ -217,7 +218,7 @@ Exemplo do bloco encontrado no início de **JS.txt**:
 
     globalThis.PERSONCHAT_CONFIG = {
         THEME: "dark-purple",
-        MESSAGE_ANIMATION: "soft-slide",
+        MESSAGE_ANIMATION: "s-shake",
         TEXT_EFFECT: "soft-glow",
         MESSAGE_LINE_LENGTH: "25ch",
         MAX_MESSAGES: 50,
@@ -252,7 +253,7 @@ Exemplo do bloco encontrado no início de **JS.txt**:
 | Opção                                     | Função                                                                    |
 | ----------------------------------------- | ------------------------------------------------------------------------- |
 | THEME                                     | Escolhe o tema visual.                                                    |
-| MESSAGE_ANIMATION                         | Escolhe a animação de entrada das mensagens.                              |
+| MESSAGE_ANIMATION                         | Escolhe a animação aplicada às mensagens.                                 |
 | TEXT_EFFECT                               | Escolhe o efeito curto aplicado ao texto.                                 |
 | MESSAGE_LINE_LENGTH                       | Controla a largura aproximada do texto.                                   |
 | MAX_MESSAGES                              | Limita as mensagens mantidas na tela.                                     |
