@@ -840,7 +840,7 @@
     <script>
         "use strict";
 
-        const EXPECTED_VERSION = "7.10.0";
+        const EXPECTED_VERSION = "7.11.0";
         const BRIDGE_SCOPE = "personchat-preview-v1";
         const THEMES = Object.freeze([
             "pink-gold", "dark-purple", "kick-green", "youtube-red", "clean-white", "ocean-blue",
@@ -909,6 +909,7 @@
         };
 
         const state = readStateFromUrl();
+        if (state.highPerformance) enforceHighPerformanceState();
         applyStateToControls();
         updateGeneratedConfiguration();
         updateViewport();
@@ -952,6 +953,15 @@
             elements.showAvatar.checked = state.showAvatar;
             elements.roleGradients.checked = state.roleGradients;
             elements.showBadges.checked = state.showBadges;
+        }
+
+        function enforceHighPerformanceState() {
+            state.animation = "none";
+            state.shakeMode = "off";
+            state.textEffect = "none";
+            state.showAvatar = false;
+            state.roleGradients = false;
+            state.showBadges = false;
         }
 
         function bindEvents() {
@@ -1293,7 +1303,7 @@
             });
         }
 
-        function handleStateChange() {
+        function handleStateChange(event) {
             state.theme = THEMES.includes(elements.theme.value) ? elements.theme.value : "dark-purple";
             state.animation = ANIMATIONS.includes(elements.messageAnimation.value) ? elements.messageAnimation.value : "soft-slide";
             state.shakeMode = SHAKE_MODES.includes(elements.shakeMode.value) ? elements.shakeMode.value : "individual";
@@ -1305,7 +1315,12 @@
             state.showAvatar = elements.showAvatar.checked;
             state.roleGradients = elements.roleGradients.checked;
             state.showBadges = elements.showBadges.checked;
-            sendConfiguration();
+            if (state.highPerformance) {
+                enforceHighPerformanceState();
+                applyStateToControls();
+            }
+            if (event.target === elements.highPerformance) buildPreview(true);
+            else sendConfiguration();
             updateViewport();
             updateGeneratedConfiguration();
             updateUrl();

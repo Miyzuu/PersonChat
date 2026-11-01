@@ -188,7 +188,7 @@ Edite **TEXT_EFFECT** para usar **none**, **soft-glow** ou **color-pulse**.
 
 ### Modo alta performance
 
-Use **HIGH_PERFORMANCE_MODE: true** para unir o nick e a mensagem em uma única caixa compacta. Avatar, tema, cores, badges e recursos do chat continuam disponíveis; somente as duas caixas sobrepostas são substituídas por um cartão simples. Use `false` para manter o visual completo.
+Use **HIGH_PERFORMANCE_MODE: true** para unir horário, nick e mensagem em uma única caixa compacta. O tema, as cores do nick, os emotes, replies e agrupamentos continuam disponíveis. Para manter o perfil leve, o modo desativa avatar, badges, banners, degradês de cargo, animação de entrada, S Wave, efeitos de texto, partículas, Modo Clímax e destaques animados. Replies aparecem acima e fora da caixa, somente como `@usuário`. Use `false` para manter o visual completo.
 
 ## 🎉 Efeitos interativos
 
@@ -283,7 +283,7 @@ Exemplo do bloco encontrado no início de **JS.txt**:
 | EMOTE_ONLY_MODE                           | Amplia mensagens compostas somente por emotes.                            |
 | ROLE_GRADIENTS_ENABLED                    | Ativa degradês animados por cargo.                                        |
 | SHOW_USER_AVATAR                         | Use yes para mostrar fotos ou no para ocultá-las e poupar requisições.    |
-| HIGH_PERFORMANCE_MODE                    | Une nick e texto em uma única caixa simples, sem alterar avatar e cores.  |
+| HIGH_PERFORMANCE_MODE                    | Usa uma caixa simples e desativa automaticamente os efeitos pesados.     |
 | VIEWER_COLORS_ENABLED                     | Permite ao público escolher a cor do próprio nick com !cor.               |
 | VIEWER_COLOR_COMMAND                      | Define o comando reservado para selecionar uma cor pessoal.               |
 | VIEWER_COLOR_EXPIRY                       | Define por quanto tempo a preferência permanece salva, em milissegundos.  |

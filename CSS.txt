@@ -1,4 +1,4 @@
-/* PersonChat v7.10.0 | Streamlabs Chat Box */
+/* PersonChat v7.11.0 | Streamlabs Chat Box */
 
 /* stylelint-disable no-descending-specificity -- Estados interativos sobrescrevem intencionalmente os seletores-base. */
 
@@ -1132,6 +1132,7 @@ body {
 
 /* ===== MODO ALTA PERFORMANCE ===== */
 #log.high-performance-mode .message-content {
+    position: relative;
     width: fit-content;
     max-width: min(var(--message-line-length), calc(100vw - 120px));
     padding: 10px 14px 12px;
@@ -1165,6 +1166,35 @@ body {
     margin-left: 0;
 }
 
+#log.high-performance-mode .msg-reply .message-content {
+    margin-top: 20px;
+}
+
+#log.high-performance-mode .msg-reply .message-decorators {
+    position: absolute;
+    top: -19px;
+    left: 4px;
+    margin: 0;
+}
+
+#log.high-performance-mode .reply-pill {
+    gap: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--chat-message-color);
+    font-size: 11px;
+    opacity: .72;
+    animation: none;
+}
+
+#log.high-performance-mode .reply-icon,
+#log.high-performance-mode .reply-message {
+    display: none;
+}
+
 #log.high-performance-mode .user-name {
     color: var(--row-accent) !important;
     font-size: 15px;
@@ -1172,6 +1202,25 @@ body {
 
 #log.high-performance-mode .chat-time {
     font-size: 11px;
+}
+
+#log.high-performance-mode .message-row {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+#log.high-performance-mode .avatar,
+#log.high-performance-mode .platform-badge,
+#log.high-performance-mode .role-pill,
+#log.high-performance-mode .special-banner {
+    display: none !important;
+}
+
+#log.high-performance-mode,
+#log.high-performance-mode *,
+#log.high-performance-mode *::before,
+#log.high-performance-mode *::after {
+    animation: none !important;
+    transition: none !important;
 }
 
 @media (width <= 520px) {
