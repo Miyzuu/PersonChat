@@ -188,7 +188,7 @@ Edite **TEXT_EFFECT** para usar **none**, **soft-glow** ou **color-pulse**.
 
 ### Modo alta performance
 
-Use **HIGH_PERFORMANCE_MODE: true** para unir horário, nick e mensagem em uma única caixa compacta. O tema, as cores do nick, os emotes, replies, agrupamentos, avatar opcional e S Wave continuam disponíveis. Para manter o perfil leve, o modo desativa badges, banners, degradês de cargo, animação de entrada, efeitos de texto, partículas, Modo Clímax e destaques animados. Replies aparecem acima e fora da caixa, somente como `@usuário`. Use `false` para manter o visual completo.
+Use **HIGH_PERFORMANCE_MODE: true** para unir horário, nick e mensagem em uma única caixa compacta. Tema, animação de entrada, S Wave, intensidade, efeito de texto, largura, formato, cores do nick, emotes, replies, agrupamentos e avatar continuam configuráveis. Para manter o perfil leve, o modo desativa badges, banners, degradês de cargo, partículas, Modo Clímax e destaques especiais. Replies aparecem acima e fora da caixa, somente como `@usuário`. Use `false` para manter o visual completo.
 
 ## 🎉 Efeitos interativos
 
@@ -283,7 +283,7 @@ Exemplo do bloco encontrado no início de **JS.txt**:
 | EMOTE_ONLY_MODE                           | Amplia mensagens compostas somente por emotes.                            |
 | ROLE_GRADIENTS_ENABLED                    | Ativa degradês animados por cargo.                                        |
 | SHOW_USER_AVATAR                         | Use yes para mostrar fotos ou no para ocultá-las e poupar requisições.    |
-| HIGH_PERFORMANCE_MODE                    | Usa caixa simples; avatar e S Wave continuam configuráveis.              |
+| HIGH_PERFORMANCE_MODE                    | Usa caixa simples e mantém configurável todo o bloco visual principal.    |
 | VIEWER_COLORS_ENABLED                     | Permite ao público escolher a cor do próprio nick com !cor.               |
 | VIEWER_COLOR_COMMAND                      | Define o comando reservado para selecionar uma cor pessoal.               |
 | VIEWER_COLOR_EXPIRY                       | Define por quanto tempo a preferência permanece salva, em milissegundos.  |

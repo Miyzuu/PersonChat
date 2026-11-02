@@ -1,4 +1,4 @@
-// PersonChat v7.12.0 | Streamlabs Chat Box
+// PersonChat v7.13.0 | Streamlabs Chat Box
 // ===== CONFIGURACAO EDITAVEL DO PERSONCHAT =====
 // Ajuste somente este objeto antes de colar o arquivo no widget.
 // STREAMER_NAMES aceita "SeuCanal" ou ["SeuCanal"]. Mantenha o nome entre aspas e sem @.
@@ -518,8 +518,6 @@ globalThis.PERSONCHAT_CONFIG = {
     config.WORD_EFFECTS = asWordEffects(input.WORD_EFFECTS, DEFAULT_CONFIG.WORD_EFFECTS);
     config.STREAMER_NAMES = asStreamerNames(input.STREAMER_NAMES, DEFAULT_CONFIG.STREAMER_NAMES);
     if (config.HIGH_PERFORMANCE_MODE) {
-      config.MESSAGE_ANIMATION = "none";
-      config.TEXT_EFFECT = "none";
       config.SHOW_PLATFORM_BADGE = false;
       config.SHOW_ROLE_PILLS = false;
       config.SHOW_EVENT_BANNERS = false;
